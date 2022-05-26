@@ -9,15 +9,20 @@ import {BrowserRouter as Router, Routes, Route} from "react-router-dom";
 
 // Import components
 import NotFound from "./components/home/NotFound";          // Page not found
-import Registration from "./components/users/Registration";
+
 import Login from "./components/users/Login";
 import HomePage from "./components/home/HomePage";
-import SignUp from "./components/users/SignUp"; // User Registration
+import SignUp from "./components/users/SignUp";
+import Title from "./components/Title";
+import User from "./components/users/User";
+import CreateAuction from "./components/auctions/CreateAuction";
 
+import Auctions from "./components/auctions/Auctions"
+import EditUser from "./components/users/EditUser";
 function App() {
   return (
       <div className="App">
-
+        <Title/>
         <Router>
           <div>
             <Routes>
@@ -36,9 +41,20 @@ function App() {
                 // User login
                 <Route path={"login"} element={<Login/>} />
 
+                // User ID
+                <Route path="/users/:id" element={<User/>}/>
+
+                // User create auction
+                <Route path="/users/:id/createAuction" element={<CreateAuction/>}/>
+
+                // All Auctions
+                <Route path={"/auctions"} element={<Auctions/>} />
+
+                // User edit their own profile
+                <Route path="/users/:id/edit" element={<EditUser/>}/>
 
               {/*<Route path="users" element = {<Users/>}/>*/}
-              {/*<Route path="/users/:id" element={<User/>}/>*/}
+
 
             </Routes>
           </div>

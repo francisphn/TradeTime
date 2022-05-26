@@ -5,6 +5,7 @@ import {camelizeKeys} from 'humps';
 const register = async(u:userRegister): Promise<ResultSetHeader> => {
     const query = "INSERT INTO user (first_name, last_name, email, password) VALUES (?)"
     const [result] = await getPool().query(query,[[u.firstName, u.lastName, u.email, u.password]]);
+
     return result
 }
 

@@ -12,16 +12,19 @@ const register = async (req: Request, res: Response): Promise<void> => {
             return;
         }
     }
+
     if(!req.body.email.includes('@') || req.body.email.length>128 || req.body.password.length<1 || req.body.password.length>256){
         res.statusMessage = `Invalid email/password`;
         res.status(400).send();
         return;
     }
+
     if(req.body.firstName.length<1 || req.body.firstName.length>64 || req.body.lastName.length<1 || req.body.lastName.length>64) {
         res.statusMessage = `Invalid length of first/last name`;
         res.status(400).send();
         return;
     }
+
     try {
         req.body.password = await passwords.hash(req.body.password)
         const result = await User.register(req.body);

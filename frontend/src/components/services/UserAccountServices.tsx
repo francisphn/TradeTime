@@ -1,17 +1,29 @@
 import axios from "axios";
 
-let axiosConfig = {
-    headers: {
-        'Content-Type' : 'application/json; charset=UTF-8',
-        'Accept': 'Token',
-        "Access-Control-Allow-Origin": "*",
-
-    }
-};
-
-const register = async (firstName: string, lastName: string, email: string, password: string) => {
-
-
+export const register = async (firstName: string, lastName: string, email: string, password: string) => {
+    return await axios.post('http://localhost:4941/api/v1/users/register',
+        {
+            "firstName": firstName,
+            "lastName": lastName,
+            "email": email,
+            "password": password
+    })
+        .then(response => {
+            return response
+        }, error => {
+            return error.response.statusText
+        })
 }
 
-export default  register;
+export const login = async (email: string, password: string) => {
+    return await axios.post('http://localhost:4941/api/v1/users/login',
+        {
+            "email": email,
+            "password": password
+        }).then(respose => {
+            return respose
+    }, error => {
+            return error.response.statusText
+    })
+}
+
