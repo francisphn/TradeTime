@@ -1,4 +1,4 @@
-import {Request, Response} from "express";
+    import {Request, Response} from "express";
 import Logger from '../../config/logger';
 import * as User from '../models/user.model';
 import * as passwords from '../models/passwords';
