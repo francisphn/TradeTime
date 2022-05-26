@@ -48,9 +48,20 @@ export default function SignUp() {
         setUserPassword(event.target.value)
     }
 
-    const handleSubmit = async() => {
-        const registerMe = await register(userFirstName, userLastName, userEmailAddress, userPassword)
-        alert(registerMe)
+    const handleSubmit = () => {
+        const json = JSON.stringify({
+            "firstName": userFirstName,
+            "lastName": userLastName,
+            "email": userEmailAddress,
+            "password": userPassword
+        });
+
+        return await axios.post('https://localhost:4941/api/v1/users/register', json,)
+            .then(response => {
+                return response.status
+            }, error => {
+                return error.response.statusText
+            })
     }
 
     return (
