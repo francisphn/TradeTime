@@ -13,14 +13,14 @@ import Typography from '@mui/material/Typography';
 import Container from '@mui/material/Container';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 
-import {register, login} from '../services/UserAccountServices'
+import {register, login, setAvatar} from '../services/UserAccountServices'
 
 import {Alert, AlertTitle} from "@mui/material";
 import {useNavigate} from "react-router-dom";
 
 import axios from "axios";
-import {useUserStore} from "../../store";
 
+import {isThereCookie, setCookie} from "../services/CookiesService";
 
 
 const theme = createTheme()
@@ -33,16 +33,17 @@ export default function SignUp() {
 
     const navigator = useNavigate()
 
-    const [userId, setUserId] = React.useState(-1)
-    const [userToken, setUserToken] = React.useState("")
-
     const [errorFlag, setErrorFlag] = React.useState(false)
     const [errorMessage, setErrorMessage] = React.useState("")
 
     const [profileImageFile, setProfileImageFile] = React.useState("")
     const [isFilePicked, setIsFilePicked] = React.useState(false)
 
-
+    React.useEffect(() => {
+        if (isThereCookie()) (
+            navigator('/user')
+        )
+    })
 
     const handleSubmit = async(event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault()
@@ -60,34 +61,35 @@ export default function SignUp() {
         } else {
             const registerMe = await register(firstName.toString(), lastName.toString(), email.toString(), password.toString())
 
+
             if (registerMe.status === 201) {
                 setErrorFlag(false)
                 setErrorMessage("")
 
+                setCookie("userId", registerMe.data['userId'])
+
                 const logMeIn = await login(email.toString(), password.toString())
 
                 if (logMeIn.status === 200) {
+
+                    setCookie("userToken", logMeIn.data['token'])
+
                     setErrorFlag(false)
                     setErrorMessage("")
-                    setUserId(logMeIn.data['userId'])
-                    setUserToken(logMeIn.data['token'])
 
-                    const axiosPhotoConfig = {
-                        headers: {"content-type": "image/jpeg",
-                            "X-Authorization": userToken || ""
+                    if (isFilePicked) {
+                        const photoMe = await setAvatar(profileImageFile)
+                        console.log(photoMe)
+                        if (photoMe.status === 200 || photoMe.status === 201) {
+                            setErrorFlag(false)
+                            setErrorMessage("")
+                        } else {
+                            setErrorFlag(true)
+                            setErrorMessage(photoMe)
                         }
                     }
 
-                    if (isFilePicked) {
-                        const photoMe = await axios.put('http://localhost:4941/api/v1/users/'+ userId + '/image', profileImageFile, axiosPhotoConfig)
-                            .then(response => {
-                                console.log(response)
-                                return response
-                            }, error => {
-                                console.log(error.response.statusText)
-                                return error.response.statusText
-                            })
-                    } 
+                    navigator("/user")
                     
 
                 } else {
@@ -99,34 +101,6 @@ export default function SignUp() {
                 setErrorFlag(true)
                 setErrorMessage(registerMe)
             }
-
-            
-
-
-
-                // axios.post('http://localhost:4941/api/v1/users/register',
-                // {
-                //     "firstName": firstName.toString(),
-                //     "lastName": lastName.toString(),
-                //     "email": email.toString(),
-                //     "password": password.toString()
-                // })
-                // .then(response => {
-                //     setUserId(response.data['userId'])
-                //     return response.status
-                // }, error => {
-                //     return error.response.statusText
-                // })
-
-            // if (registerMe != 201) {
-
-            // } else {
-
-            //
-
-            //
-            //     navigator('/home')
-            //}
         }
 
 

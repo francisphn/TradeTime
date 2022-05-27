@@ -42,16 +42,16 @@ function App() {
                 <Route path={"login"} element={<Login/>} />
 
                 // User ID
-                <Route path="/users/:id" element={<User/>}/>
+                <Route path="user" element={<User/>}/>
 
                 // User create auction
-                <Route path="/users/:id/createAuction" element={<CreateAuction/>}/>
+                <Route path="/auction/create" element={<CreateAuction/>}/>
 
                 // All Auctions
                 <Route path={"/auctions"} element={<Auctions/>} />
 
                 // User edit their own profile
-                <Route path="/users/:id/edit" element={<EditUser/>}/>
+                <Route path="/user/edit" element={<EditUser/>}/>
 
               {/*<Route path="users" element = {<Users/>}/>*/}
 
