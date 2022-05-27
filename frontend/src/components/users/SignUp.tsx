@@ -64,20 +64,43 @@ export default function SignUp() {
                 setErrorFlag(false)
                 setErrorMessage("")
 
-            } else {
-                setErrorFlag(true)
-                setErrorMessage(registerMe)
-            }
-
-            if (!errorFlag) {
                 const logMeIn = await login(email.toString(), password.toString())
 
                 if (logMeIn.status === 200) {
                     setErrorFlag(false)
                     setErrorMessage("")
                     setUserId(logMeIn.data['userId'])
+                    setUserToken(logMeIn.data['token'])
+
+                    const axiosPhotoConfig = {
+                        headers: {"content-type": "image/jpeg",
+                            "X-Authorization": userToken || ""
+                        }
+                    }
+
+                    if (isFilePicked) {
+                        const photoMe = await axios.put('http://localhost:4941/api/v1/users/'+ userId + '/image', profileImageFile, axiosPhotoConfig)
+                            .then(response => {
+                                console.log(response)
+                                return response
+                            }, error => {
+                                console.log(error.response.statusText)
+                                return error.response.statusText
+                            })
+                    } 
+                    
+
+                } else {
+                    setErrorFlag(true)
+                    setErrorMessage(logMeIn)
                 }
+
+            } else {
+                setErrorFlag(true)
+                setErrorMessage(registerMe)
             }
+
+            
 
 
 
@@ -100,19 +123,7 @@ export default function SignUp() {
             // } else {
 
             //
-            //     if (isFilePicked) {
-            //         console.log("here")
-            //         console.log(userId)
-            //
-            //         const axiosPhotoConfig = {
-            //             headers: {"content-type": imageType,
-            //                 "X-Authorization": Cookies.get('userToken') || ""
-            //             }
-            //         }
-            //
-            //
-            //         const photoMe = await axios.put('http://localhost:4941/api/v1/users/'+ userId + '/image', profileImageFile)
-            //     }
+
             //
             //     navigator('/home')
             //}

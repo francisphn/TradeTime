@@ -1,5 +1,11 @@
 import axios from "axios";
 
+// const axiosPhotoConfig = {
+//     headers: {"content-type": imageType,
+//         "X-Authorization": Cookies.get('userToken') || ""
+//     }
+// }
+
 export const register = async (firstName: string, lastName: string, email: string, password: string) => {
     return await axios.post('http://localhost:4941/api/v1/users/register',
         {
@@ -26,4 +32,6 @@ export const login = async (email: string, password: string) => {
             return error.response.statusText
     })
 }
+
+
 
