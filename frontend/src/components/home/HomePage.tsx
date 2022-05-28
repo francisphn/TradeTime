@@ -65,12 +65,10 @@ export default function Album() {
                             color="text.primary"
                             gutterBottom
                         >
-                            Album layout
+                            Welcome to TradeTime!
                         </Typography>
                         <Typography variant="h5" align="center" color="text.secondary" paragraph>
-                            Something short and leading about the collection below—its contents,
-                            the creator, etc. Make it short and sweet, but not too short so folks
-                            don&apos;t simply skip over it entirely.
+                            TradeTime is your one-stop site for all things auctions. Discover 400 listings on now!
                         </Typography>
                         <Stack
                             sx={{ pt: 4 }}

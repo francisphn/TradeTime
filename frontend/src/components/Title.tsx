@@ -18,9 +18,11 @@ import { styled, alpha } from '@mui/material/styles';
 import InputBase from '@mui/material/InputBase';
 
 import SearchIcon from '@mui/icons-material/Search';
+import { isThereCookie } from './services/CookiesService';
 
 
-const pages = ['Auctions', 'Search'];
+const pages = ['Advanced Search'];
+const settings_casual = ['Sign up', 'Log in']
 const settings = ['Account', 'Your bids', 'Your listings', 'List a new auction', 'Logout'];
 
 const Search = styled('div')(({ theme }) => ({
@@ -33,7 +35,7 @@ const Search = styled('div')(({ theme }) => ({
     marginLeft: 0,
     width: '100%',
     [theme.breakpoints.up('sm')]: {
-        marginLeft: theme.spacing(1),
+        marginLeft: theme.spacing(10),
         width: 'auto',
     },
 }));
@@ -57,15 +59,22 @@ const StyledInputBase = styled(InputBase)(({ theme }) => ({
         transition: theme.transitions.create('width'),
         width: '100%',
         [theme.breakpoints.up('sm')]: {
-            width: '12ch',
+            width: '35ch',
             '&:focus': {
-                width: '20ch',
+                width: '40ch',
             },
         },
     },
 }));
 
 const ResponsiveAppBar = () => {
+
+    React.useEffect(() => {
+        if (isThereCookie()) {
+            
+        }
+    })
+
     const [anchorElNav, setAnchorElNav] = React.useState<null | HTMLElement>(null);
     const [anchorElUser, setAnchorElUser] = React.useState<null | HTMLElement>(null);
 
@@ -147,7 +156,7 @@ const ResponsiveAppBar = () => {
                             <SearchIcon />
                         </SearchIconWrapper>
                         <StyledInputBase
-                            placeholder="Search…"
+                            placeholder="What would you like to buy?"
                             inputProps={{ 'aria-label': 'search' }}
                         />
                     </Search>
