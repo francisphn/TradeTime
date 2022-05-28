@@ -119,7 +119,7 @@ const Auction = () => {
 
             </Box>
 
-            <img src="http://s" alt="Italian Trulli">
+            <img src="http://s" alt="Italian Trulli"/>
 
             <Box sx={{ m: 0, marginBottom: 5 }}>
 
