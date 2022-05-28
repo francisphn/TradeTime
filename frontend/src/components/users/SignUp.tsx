@@ -36,14 +36,29 @@ export default function SignUp() {
     const [errorFlag, setErrorFlag] = React.useState(false)
     const [errorMessage, setErrorMessage] = React.useState("")
 
-    const [profileImageFile, setProfileImageFile] = React.useState("")
+    const [profileImageFile, setProfileImageFile] = React.useState()
     const [isFilePicked, setIsFilePicked] = React.useState(false)
+    const [preview, setPreview] = React.useState("/static/images/avatar/1.jpg")
 
     React.useEffect(() => {
         if (isThereCookie()) (
             navigator('/user')
         )
-    })
+
+        if (!profileImageFile) {
+            setPreview("/static/images/avatar/1.jpg")
+            return
+        } else {
+
+        }
+
+        const objectUrl = URL.createObjectURL(profileImageFile)
+        setPreview(objectUrl)
+
+        // free memory when ever this component is unmounted
+        return () => URL.revokeObjectURL(objectUrl)
+
+    }, [profileImageFile])
 
     const handleSubmit = async(event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault()
@@ -118,13 +133,33 @@ export default function SignUp() {
 
                 <CssBaseline/>
                 <Box sx={{marginTop: 8, display: 'flex', flexDirection: 'column', alignItems: 'center',}} />
-                <Avatar sx={{ m: 1, bgcolor: 'secondary.main' }}> <LockOutlinedIcon /> </Avatar>
-                <Typography component="h1" variant="h5">Sign up to LetsTrade</Typography>
 
-                {errorFlag && <Alert severity="error">
-                    <AlertTitle>Error</AlertTitle>
-                    {errorMessage}
-                </Alert>}
+
+                <Box sx={{marginBottom: 4}}>
+                    {errorFlag && <Alert severity="error">
+                        <AlertTitle>Error</AlertTitle>
+                        {errorMessage}
+                    </Alert>}
+                </Box>
+
+                <Box>
+                    <Avatar
+                        alt="Remy Sharp"
+                        src={preview}
+                        sx={{ marginBottom: 3, width: 56, height: 56}}
+                    />
+
+                    <Typography component="h1" variant="h5">Sign up to LetsTrade</Typography>
+
+                    <label htmlFor="contained-button-file">
+                        <Input accept="image/*" id="contained-button-file" type="file" onChange={handleSubmitProfilePhoto} />
+                        <Button variant="outlined" component="span" fullWidth sx={{ mt: 3, mb: 2 }}>
+                            Set my profile photo
+                        </Button>
+                    </label>
+                </Box>
+
+
 
 
 
@@ -178,12 +213,7 @@ export default function SignUp() {
                         </Grid>
                     </Grid>
 
-                    <label htmlFor="contained-button-file">
-                        <Input accept="image/*" id="contained-button-file" type="file" onChange={handleSubmitProfilePhoto} />
-                        <Button variant="contained" component="span" fullWidth sx={{ mt: 3, mb: 2 }}>
-                            Upload profile photo (optional)
-                        </Button>
-                    </label>
+
 
                     <Button
                         type="submit"

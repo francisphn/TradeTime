@@ -1,12 +1,6 @@
 import axios from "axios";
 import {getCookie} from "./CookiesService";
 
-// const axiosPhotoConfig = {
-//     headers: {"content-type": imageType,
-//         "X-Authorization": Cookies.get('userToken') || ""
-//     }
-// }
-
 export const register = async (firstName: string, lastName: string, email: string, password: string) => {
     return await axios.post('http://localhost:4941/api/v1/users/register',
         {
@@ -62,4 +56,46 @@ export const getUserFromBackend = async () => {
         })
 }
 
+export const editUser = async (firstName: string, lastName: string, email: string) => {
+
+    const axiosConfig = {headers: {"X-Authorization": getCookie("userToken")}}
+
+    return await axios.patch('http://localhost:4941/api/v1/users/'+ getCookie("userId"),
+        {
+            "firstName": firstName,
+            "lastName": lastName,
+            "email": email,
+        } ,axiosConfig)
+        .then(response => {
+            return response
+        }, error => {
+            return error.response.statusText
+        })
+}
+
+export const resetPassword = async (currentPassword: string, newPassword: string) => {
+
+    const axiosConfig = {headers: {"X-Authorization": getCookie("userToken")}}
+
+    return await axios.patch('http://localhost:4941/api/v1/users/'+ getCookie("userId"),
+        {
+            "currentPassword": currentPassword,
+            "password": newPassword
+        } ,axiosConfig)
+        .then(response => {
+            return response
+        }, error => {
+            return error.response
+        })
+
+}
+
+export const getUserAvatar = async (id: string) => {
+    return await axios.get('http://localhost:4941/api/v1/users/'+ getCookie("userId") + '/image')
+        .then(response => {
+            return response
+        }, error => {
+        return error.response.statusText
+    })
+}
 

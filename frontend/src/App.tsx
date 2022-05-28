@@ -19,6 +19,8 @@ import CreateAuction from "./components/auctions/CreateAuction";
 
 import Auctions from "./components/auctions/Auctions"
 import EditUser from "./components/users/EditUser";
+import Auction from "./components/auctions/Auction";
+
 function App() {
   return (
       <div className="App">
@@ -28,7 +30,7 @@ function App() {
             <Routes>
 
                 // Homepage for app
-                <Route path="home" element={<HomePage/>}/>
+                <Route path="home" element={<Auctions/>}/>
 
                 <Route path={"404"} element={<NotFound/>}/>
 
@@ -44,8 +46,11 @@ function App() {
                 // User ID
                 <Route path="user" element={<User/>}/>
 
+                // Auction
+                <Route path="/auctions/:id" element={<Auction/>}/>
+
                 // User create auction
-                <Route path="/auction/create" element={<CreateAuction/>}/>
+                <Route path="/auctions/create" element={<CreateAuction/>}/>
 
                 // All Auctions
                 <Route path={"/auctions"} element={<Auctions/>} />

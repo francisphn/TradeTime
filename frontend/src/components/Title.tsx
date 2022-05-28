@@ -23,7 +23,8 @@ import { isThereCookie } from './services/CookiesService';
 
 const pages = ['Advanced Search'];
 const settings_casual = ['Sign up', 'Log in']
-const settings = ['Account', 'Your bids', 'Your listings', 'List a new auction', 'Logout'];
+const settings_loggedIn = ['Account', 'Your bids', 'Your listings', 'List a new auction', 'Logout'];
+
 
 const Search = styled('div')(({ theme }) => ({
     position: 'relative',
@@ -71,9 +72,13 @@ const ResponsiveAppBar = () => {
 
     React.useEffect(() => {
         if (isThereCookie()) {
-            
+            setSettings(settings_loggedIn)
+        } else {
+            setSettings(settings_casual)
         }
     })
+
+    const [settings, setSettings] = React.useState([''])
 
     const [anchorElNav, setAnchorElNav] = React.useState<null | HTMLElement>(null);
     const [anchorElUser, setAnchorElUser] = React.useState<null | HTMLElement>(null);
@@ -162,7 +167,7 @@ const ResponsiveAppBar = () => {
                     </Search>
 
 
-                    <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' } }}>
+                    <Box sx={{ marginLeft: 2, flexGrow: 1, display: { xs: 'none', md: 'flex' } }}>
                         {pages.map((page) => (
                             <Button
                                 key={page}
