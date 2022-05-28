@@ -12,18 +12,51 @@ import Grid from '@mui/material/Grid';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import Typography from '@mui/material/Typography';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
+import {isThereCookie, setCookie} from '../services/CookiesService';
+import { useNavigate } from 'react-router-dom';
+import {login} from "../services/UserAccountServices";
+import {Alert, AlertTitle} from "@mui/material";
 
 
 const theme = createTheme();
 
-export default function SignInSide() {
-    const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+export default function Login() {
+
+    const [errorFlag, setErrorFlag] = React.useState(false)
+    const [errorMessage, setErrorMessage] = React.useState("")
+
+    const navigator = useNavigate();
+
+    React.useEffect(() => {
+        if (isThereCookie()) {
+            navigator('/user')
+        }
+    })
+
+    const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         const data = new FormData(event.currentTarget);
-        console.log({
-            email: data.get('email'),
-            password: data.get('password'),
-        });
+        const email = data.get('email')
+        const password = data.get('password')
+
+        if (email === null || password === null ) {
+            setErrorFlag(true)
+            setErrorMessage("You're missing a field!")
+        } else {
+            const logMeIn = await login(email.toString(), password.toString())
+
+            if (logMeIn.status === 200) {
+                setCookie('userId', logMeIn.data['userId'])
+                setCookie("userToken", logMeIn.data['token'])
+                setErrorFlag(false)
+                setErrorMessage("")
+                navigator('/user')
+            } else {
+                setErrorFlag(true)
+                setErrorMessage(logMeIn)
+            }
+
+        }
     };
 
     return (
@@ -58,8 +91,14 @@ export default function SignInSide() {
                             <LockOutlinedIcon />
                         </Avatar>
                         <Typography component="h1" variant="h5">
-                            Sign in
+                            Log in
                         </Typography>
+
+                        {errorFlag && <Alert severity="error">
+                            <AlertTitle>Error</AlertTitle>
+                            {errorMessage}
+                        </Alert>}
+
                         <Box component="form" noValidate onSubmit={handleSubmit} sx={{ mt: 1 }}>
                             <TextField
                                 margin="normal"
@@ -91,7 +130,7 @@ export default function SignInSide() {
                                 variant="contained"
                                 sx={{ mt: 3, mb: 2 }}
                             >
-                                Sign In
+                                Log in
                             </Button>
                             <Grid container>
                                 <Grid item xs>
@@ -100,8 +139,8 @@ export default function SignInSide() {
                                     </Link>
                                 </Grid>
                                 <Grid item>
-                                    <Link href="#" variant="body2">
-                                        {"Don't have an account? Sign Up"}
+                                    <Link href="/register" variant="body2">
+                                        {"Don't have an account?"}
                                     </Link>
                                 </Grid>
                             </Grid>

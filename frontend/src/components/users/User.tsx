@@ -1,9 +1,8 @@
-import {useNavigate, useParams} from "react-router-dom";
-import React, {useEffect} from "react";
-import axios from "axios";
-import {ThemeProvider} from "@mui/material";
-import {isThereCookie} from "../services/CookiesService";
+import {useNavigate} from "react-router-dom";
+import React from "react";
+import {deleteCookie, isThereCookie} from "../services/CookiesService";
 import {getUserFromBackend} from "../services/UserAccountServices";
+import Button from "@mui/material/Button";
 
 const User = () => {
 
@@ -11,25 +10,40 @@ const User = () => {
 
     const [errorFlag, setErrorFlag] = React.useState(false)
     const [errorMessage, setErrorMessage] = React.useState("")
-    const [userData, setUserData] = React.useState("")
+    const [userData, setUserData] = React.useState<userReturnWithEmail>({
+        firstName: "",
+        lastName: "",
+        email: ""
+    })
 
     React.useEffect(() => {
         if (!isThereCookie()) {
             navigator('/login')
         }
-    })
+        handleLoadUserDetails().then(r => setUserData(r.data))
+    }, [])
 
     const handleLoadUserDetails = async () => {
-        const userData = await getUserFromBackend()
-        return (<h1>{userData.data}</h1>)
+        const result = await getUserFromBackend()
+        console.log(result)
+        return result
+    }
 
+    const handleLogOut = () => {
+        deleteCookie()
+        navigator('/login')
     }
 
     return (
-            <div>
-                <h1>About you</h1>
-                {handleLoadUserDetails()}
-            </div>
+
+                <div>
+                    <p>Hi!</p>
+                    <h1>{userData.firstName}</h1>
+                    <h1>{userData.lastName}</h1>
+                    <h1>{userData.email}</h1>
+
+                    <Button variant="outlined" onClick={handleLogOut}>Log out</Button>
+                </div>
     )
 }
 
