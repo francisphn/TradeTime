@@ -17,6 +17,8 @@ const User = () => {
         if (!isThereCookie()) {
             navigator('/login')
         }
+
+        handleLoadUserDetails()
     })
 
     const handleLoadUserDetails = async () => {
