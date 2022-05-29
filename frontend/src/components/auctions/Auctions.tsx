@@ -152,9 +152,22 @@ export default function Auctions() {
                                 />
                             </Search>
 
-                            <Button variant="contained" onClick={handleClickRegister}>Sign up now</Button>
-                            <Button variant="outlined" onClick={handleClickLogIn}>Log in</Button>
+
                         </Stack>
+
+                        <Grid container spacing={2} >
+
+                            <Grid item xs={6} justifyContent="center"><Button variant="contained" onClick={handleClickRegister}>Create auction</Button></Grid>
+
+
+                            <Grid item xs={6}><Button variant="outlined" onClick={handleClickLogIn}>Log in</Button></Grid>
+
+                        </Grid>
+
+
+
+
+
                     </Container>
                 </Box>
 

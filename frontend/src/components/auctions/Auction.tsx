@@ -4,7 +4,7 @@ import axios from "axios";
 import Box from "@mui/material/Box";
 import Avatar from "@mui/material/Avatar";
 import Typography from "@mui/material/Typography";
-import {Alert, AlertTitle, TextField} from "@mui/material";
+import {Alert, AlertTitle, Breadcrumbs, InputAdornment, TableHead, TextField} from "@mui/material";
 import Button from "@mui/material/Button";
 import Dialog from "@mui/material/Dialog";
 import DialogTitle from "@mui/material/DialogTitle";
@@ -17,28 +17,24 @@ import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
 import TableRow from "@mui/material/TableRow";
 import TableCell from "@mui/material/TableCell";
-import {deleteCookie, isThereCookie} from "../services/CookiesService";
-import {fetchAuction} from "../services/AuctionServices";
+import {deleteCookie, getCookie, isThereCookie} from "../services/CookiesService";
+import {fetchAuction, fetchAuctionHistory, userBidAuction} from "../services/AuctionServices";
 import Grid from "@mui/material/Grid";
 import Container from "@mui/material/Container";
 import { styled } from '@mui/material/styles';
 import CardMedia from "@mui/material/CardMedia";
 import SendIcon from "@mui/icons-material/Send";
+import Link from "@mui/material/Link";
 
 function createData(
+    amount: number,
     name: string,
-    calories: number,
+    timestamp:string
 ) {
-    return { name, calories };
+    return { amount, name, timestamp };
 }
 
-const rows = [
-    createData('Win bids', 237),
-    createData('Lost bids', 262),
-    createData('Bidding', 305),
-    createData('All listings', 356),
-    createData('Current listings', 356),
-];
+
 
 const Item = styled(Paper)(({ theme }) => ({
     backgroundColor: theme.palette.mode === 'dark' ? '#1A2027' : '#fff',
@@ -46,14 +42,30 @@ const Item = styled(Paper)(({ theme }) => ({
     color: theme.palette.text.secondary,
 }));
 
+
 const Auction = () => {
     const params = useParams();
     const id = params.id
 
     const navigator = useNavigate()
 
+    const [bids, setBids] = React.useState<Array<bid>>([
+        {
+            bidderId: 0,
+            firstName: "",
+            lastName: "",
+            timestamp: "",
+            amount: 0
+
+        }
+    ])
+
     const [errorFlag, setErrorFlag] = React.useState(false)
     const [errorMessage, setErrorMessage] = React.useState("")
+    const [hasAuctionClosedFlag, setHasAuctionClosedFlag] = React.useState(false)
+
+    const [bidStatusFlag, setBidStatusFlag] = React.useState(false)
+    const [bidStatusMessage, setBidStatusMessage] = React.useState("")
 
     const [auction, setAuction] = React.useState<auctions>({
         categoryId: 0,
@@ -71,16 +83,70 @@ const Auction = () => {
 
     const [open, setOpen] = React.useState(false);
 
+
+
+
     React.useEffect(() => {
+
+
+
         handleLoadAuction().then((r) => {
             setAuction(r.data)
+        })
+
+        handleLoadAuctionHistory().then((r) => {
+            setBids(r.data)
 
         })
-    },  )
+    }, [open])
+
+    const checkIfSeller = () => {
+        if (getCookie("userId") === auction.sellerId.toString()) {
+            return true
+        }
+        return false
+    }
+
+    const checkCurrent = () => {
+        const today = new Date();
+        const auctionExpirationDay = new Date(auction.endDate)
+        console.log(today)
+        console.log(auctionExpirationDay)
+        console.log(today > auctionExpirationDay)
+        if (today > auctionExpirationDay) {
+            return false
+        }
+        return true
+    }
+
+    const createRows = (data: Array<bid>) => {
+        let myRows = [createData(0, "Listings created", "")]
+
+        data.map((bid) => {
+            myRows.push(createData(bid.amount, (bid.firstName + " " + bid.lastName), (displayEndDayOfWeek(bid.timestamp) + " " + displayEndDate(bid.timestamp))))
+        })
+
+        if (myRows.length > 1) {
+            myRows.shift()
+        }
+
+        return myRows
+    }
 
     const handleLoadAuction = async () => {
         if (id != null) {
-            return await fetchAuction(id)
+            const response = await fetchAuction(id)
+            if (response.status === 404) {
+                setErrorFlag(true)
+                setErrorMessage("This auction listing does not exist, or has been removed.")
+            }
+            return response
+        }
+    }
+
+    const handleLoadAuctionHistory = async () => {
+        if (id != null) {
+            return await fetchAuctionHistory(id)
         }
     }
 
@@ -94,16 +160,14 @@ const Auction = () => {
     }
 
     const handleClickOpen = () => {
-        if (isThereCookie()) {
             setOpen(true);
-        } else {
-            navigator('/login')
-        }
-
     };
 
     const handleClose = () => {
-        setOpen(false);
+
+        setOpen(false)
+        setBidStatusFlag(false)
+
     };
 
     const displayEndDate = (endDate: string) => {
@@ -147,177 +211,325 @@ const Auction = () => {
         }
     }
 
+    const displayReserveMet = () => {
+        if (auction.reserve <= auction.highestBid) {
+            return "Reserve met"
+        } else {
+            return "Reserve not met"
+        }
+    }
+
+    const handleSubmitBid = async(event: React.FormEvent<HTMLFormElement>) => {
+
+        event.preventDefault()
+        const data = new FormData(event.currentTarget)
+
+        const bidAmountInput = data.get('amount')
+
+        if (bidAmountInput != null) {
+
+            const bidAmount = parseInt(bidAmountInput.toString())
+
+            console.log(bidAmount)
+
+            if (isNaN(bidAmount)) {
+                setBidStatusFlag(true)
+                setBidStatusMessage("Invalid bid amount!")
+            } else if (bidAmount > auction.highestBid) {
+                const response = await userBidAuction(auction.auctionId.toString(), bidAmount)
+
+                if (response.status === 201) {
+                    setOpen(false)
+                } else {
+                    setBidStatusFlag(true)
+                    setBidStatusMessage(response.statusText)
+                }
+
+            } else {
+                setBidStatusFlag(true)
+                setBidStatusMessage("Your bid must be higher than the current bid!")
+            }
+        }
+
+
+
+    }
+
+    const displayNumBids = () => {
+        const numBid = auction.numBids
+        if (numBid === 0) {
+            return "No bids"
+        } else if (numBid === 1) {
+            return "1 bid"
+        } else {
+            return numBid.toString() + " bids"
+        }
+    }
+
     return (
 
-        <Container maxWidth="lg" sx={{marginTop: 15}}>
+        <Container maxWidth="lg" sx={{marginTop: 9}}>
 
-            <Grid container spacing={2}>
+            {errorFlag &&
 
-                <Grid item xs={7}>
-                    <CardMedia
-                        component="img"
-                        sx={{
-                            // 16:9
+                <div>
+                    <Alert severity="error">
+                        <AlertTitle>Uh oh...</AlertTitle>
+                        <Typography>{errorMessage}</Typography>
+                    </Alert>
 
-                            height: 410
-                        }}
-                        image={"http://localhost:4941/api/v1/auctions/"+ id +"/image"}
-                        alt="random"
-                    />
+                </div>
 
-                    <Box sx={{ m: 0, marginTop: 5, marginBottom: 5 }}>
+            }
 
-                        <Typography variant="button" gutterBottom component="div" sx={{ marginBottom: 1.5 }}>
-                            DESCRIPTION
+            {!errorFlag &&
+
+                <>
+
+                <Grid container spacing={2}>
+
+
+
+                    <Grid item xs={7}>
+                        <CardMedia
+                            component="img"
+                            sx={{
+                                // 16:9
+                                height: 410
+                            }}
+                            image={"http://localhost:4941/api/v1/auctions/" + id + "/image"}
+                            alt="random"/>
+
+                        <Box sx={{m: 0, marginTop: 5, marginBottom: 5}}>
+
+                            <Typography variant="button" gutterBottom component="div" sx={{marginBottom: 1.5}}>
+                                DESCRIPTION
+                            </Typography>
+
+                            <Typography>
+                                {auction.description}
+                            </Typography>
+
+
+
+                        </Box>
+
+
+                        <Typography variant="button" gutterBottom component="div" sx={{marginBottom: 1.5}}>
+                            BID HISTORY
                         </Typography>
 
-                        <Typography>
-                            {auction.description}
-                        </Typography>
-
-                        <Typography variant="button" gutterBottom component="div" sx={{ marginTop: 5, marginBottom: 1.5 }}>
-                            MANAGE
-                        </Typography>
-
-                        <Button variant="contained"  sx={{ marginRight: 3 }}>My current bids</Button>
-                        <Button variant="outlined"  sx={{ marginRight: 3 }}>My current listings</Button>
-                        <Button variant="text" sx={{ marginRight: 3 }} onClick={handleEditUser}>Edit my info</Button>
-                        <Button variant="text" onClick={handleClickOpen}>
-                            Log out
-                        </Button>
-
-                    </Box>
-
-
-
-
-                    <Typography variant="button" gutterBottom component="div" sx={{ marginBottom: 1.5 }}>
-                        STATISTICS
-                    </Typography>
-
-                    <TableContainer component={Paper}>
-                        <Table sx={{ minWidth: 70 }} aria-label="simple table">
-                            <TableBody>
-                                {rows.map((row) => (
-                                    <TableRow
-                                        key={row.name}
-                                        sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
-                                    >
-                                        <TableCell component="th" scope="row">
-                                            {row.name}
-                                        </TableCell>
-                                        <TableCell align="right">{row.calories}</TableCell>
+                        <TableContainer component={Paper}>
+                            <Table sx={{ minWidth: 650 }} aria-label="simple table">
+                                <TableHead>
+                                    <TableRow>
+                                        <TableCell>Amount</TableCell>
+                                        <TableCell>From</TableCell>
+                                        <TableCell align="right">Time</TableCell>
                                     </TableRow>
-                                ))}
-                            </TableBody>
-                        </Table>
-                    </TableContainer>
+                                </TableHead>
+                                <TableBody>
+                                    {createRows(bids).map((row) => (
+                                        <TableRow
+                                            key={row.name}
+                                            sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
+                                        >
+                                            <TableCell component="th" scope="row">
+                                                ${row.amount}
+                                            </TableCell>
+                                            <TableCell>{row.name}</TableCell>
+                                            <TableCell align="right">{row.timestamp}</TableCell>
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
+                        </TableContainer>
 
 
+                    </Grid>
 
-                </Grid>
+                    <Grid item xs={5}>
+                        <Box sx={{m: 3}}>
+                            <Typography variant={"h5"} sx={{marginBottom: 3}}>{auction.title}</Typography>
+                            {!(checkCurrent()) &&
+                                <><Alert severity="success" sx={{marginBottom: 3}}>Closed on {displayEndDayOfWeek(auction.endDate)}, {displayEndDate(auction.endDate)}</Alert>
 
-                <Grid item xs={5}>
-                    <Box sx={{m: 3}}>
-                        <Typography variant={"h5"} sx={{marginBottom: 3}}>{auction.title}</Typography>
-                        <Alert severity="info" sx={{marginBottom: 3}}>Closes {displayEndDayOfWeek(auction.endDate)}, {displayEndDate(auction.endDate)}</Alert>
+                            </>}
 
-                        <Item >
+                            {checkCurrent() &&
+                                <><Alert severity="info" sx={{marginBottom: 3}}>Closes: {displayEndDayOfWeek(auction.endDate)}, {displayEndDate(auction.endDate)}</Alert>
 
-                            <Typography variant={"h6"} align="center">Current bid</Typography>
-                            <Typography variant={"h3"} align="center" sx={{marginBottom: 0}}>${displayHighestBid(auction.highestBid)}.00</Typography>
+                                </>}
+                            <Item>
+                                <Typography variant={"h6"} align="center">Highest bid</Typography>
+                                <Typography variant={"h3"} align="center"
+                                            sx={{marginBottom: 0}}>${displayHighestBid(auction.highestBid)}</Typography>
 
-                            <Typography variant={"subtitle1"} align="center">5 bids - view history</Typography>
+                                <Typography variant={"subtitle1"} align="center">{displayNumBids()}</Typography>
 
-                            <Button
-                                type="submit"
-                                fullWidth
-                                variant="contained"
-                                sx={{ mt: 2, mb: 2 }} endIcon={<SendIcon/>}
-                                onClick={handleClickOpen}
-                            >
-                                Place your bid
-                            </Button>
+                                {checkCurrent() &&
 
-                            <Dialog
-                                open={open}
-                                onClose={handleClose}
-                                aria-labelledby="alert-dialog-title"
-                                aria-describedby="alert-dialog-description"
-                            >
-                                <DialogTitle id="alert-dialog-title">
-                                    {"Place my bid"}
-                                </DialogTitle>
-                                <DialogContent>
-                                    <DialogContentText id="alert-dialog-description">
-                                        Enter the amount.
-                                    </DialogContentText>
-
-                                    <TextField
-                                        autoFocus
-                                        margin="dense"
-                                        id="name"
-                                        label="Email Address"
-                                        type="email"
+                                    <Button
+                                        type="submit"
                                         fullWidth
-                                        variant="standard"
-                                    />
+                                        variant="contained"
+                                        sx={{mt: 2, mb: 2}} endIcon={<SendIcon/>}
+                                        onClick={handleClickOpen}
 
-                                </DialogContent>
-                                <DialogActions>
-                                    <Button onClick={handleClose}>Cancel</Button>
-                                    <Button onClick={handleLogOut} autoFocus>
-                                        Log me out
+                                    >
+                                        Place your bid
                                     </Button>
-                                </DialogActions>
-                            </Dialog>
 
-                            <Typography align="center" variant={"subtitle2"} >Reserve not met</Typography>
-                        </Item>
+                                }
 
-                        <Grid container spacing={1} sx={{ marginTop: 3}}>
+                                {!(checkCurrent()) && !checkIfSeller() &&
 
-                            <Grid item xs={2} >
+                                    <Button
+                                        type="submit"
+                                        fullWidth
+                                        variant="contained"
+                                        sx={{mt: 2, mb: 2}} endIcon={<SendIcon/>}
+                                        onClick={handleClickOpen}
+                                        disabled
+                                    >
+                                        Place my bid
+                                    </Button>
 
-                                <Avatar
-                                    src={"http://localhost:4941/api/v1/users/" + auction.sellerId + "/image"}
-                                    sx={{ marginBottom: 3, width: 56, height: 56}}
-                                />
+                                }
 
-                            </Grid>
+                                <Dialog
+                                    open={open}
+                                    onClose={handleClose}
+                                    aria-labelledby="alert-dialog-title"
+                                    aria-describedby="alert-dialog-description"
+                                >
+                                    <DialogTitle id="alert-dialog-title">
+                                        {"Place my bid"}
+                                    </DialogTitle>
+                                    {isThereCookie() &&
 
-                            <Grid item xs={5}>
-                                <Typography variant={"body2"} sx={{marginTop: 1, marginBottom: 0}}>Listed by</Typography>
-                                <Typography>{auction.sellerFirstName} {auction.sellerLastName}</Typography>
-                            </Grid>
-                        </Grid>
+                                        <><DialogContent>
 
-                    </Box>
+                                            <Box component="form" noValidate onSubmit={handleSubmitBid}>
+
+                                                <TextField
+                                                    autoFocus
+                                                    name="amount"
+                                                    margin="dense"
+                                                    id="amount"
+                                                    label="Your bid amount"
+                                                    type="text"
+                                                    fullWidth
+                                                    InputProps={{
+                                                        startAdornment: <InputAdornment position="start">$</InputAdornment>,
+                                                    }}
+                                                    variant="outlined"/>
+
+                                                <DialogContentText id="alert-dialog-description">
+
+                                                    {bidStatusFlag && <Alert severity="error" sx={{marginTop: 1}}>
+                                                        {bidStatusMessage}
+                                                    </Alert>}
+
+                                                    <Alert severity="info" sx={{marginTop: 1}}>
+                                                        Please remember that bids cannot be withdrawn. Once you've placed your bid and are the successful bidder, you must complete the transaction.
+
+                                                        <Button
+                                                            type="submit"
+                                                            variant="contained"
+                                                            sx={{ mt: 1.5, mb: 0.5}}
+
+                                                        >
+                                                            Submit bid
+                                                        </Button>
+
+                                                        <Button variant="outlined" onClick={handleClose} sx={{ mt: 1.5, mb: 0.5, ml: 2}}>Cancel</Button>
+
+                                                    </Alert>
+
+
+
+                                                </DialogContentText>
+
+                                            </Box>
 
 
 
 
 
 
-                </Grid>
+                                        </DialogContent><DialogActions>
 
-            </Grid>
+                                        </DialogActions></>
+                                    }
 
-
-
-
-
-            <Box sx={{ m: 0, marginBottom: 5 }}>
-                {errorFlag && <Alert severity="error">
-                    <AlertTitle>Error</AlertTitle>
-                    {errorMessage}
-                </Alert>}
-            </Box>
+                                    {!isThereCookie() &&
+                                        <><DialogContent>
+                                            <DialogContentText id="alert-dialog-description">
+                                                You need to log in, or create an account to start bidding on this listing.
+                                            </DialogContentText>
 
 
+                                        </DialogContent><DialogActions>
+                                            <Button onClick={handleClose}>Cancel</Button>
+                                            <Button onClick={handleClose}>Sign up</Button>
+                                            <Button onClick={handleLogOut} autoFocus>
+                                                Log in
+                                            </Button>
+                                        </DialogActions></>}
+
+                                </Dialog>
+
+                                <Typography align="center" variant={"subtitle2"}>{displayReserveMet()}</Typography>
+                            </Item>
+
+                            <Paper>
+
+                                <Grid container spacing={1} sx={{marginTop: 3, padding: 2}}>
+
+
+                                    <Grid item xs={2}>
+
+                                        <Avatar
+                                            src={"http://localhost:4941/api/v1/users/" + auction.sellerId + "/image"}
+                                            sx={{marginTop: -1, width: 56, height: 56}}/>
+
+                                    </Grid>
+
+                                    <Grid item xs={5}>
+                                        <Typography variant={"body2"} sx={{ marginBottom: 0}}>Listed
+                                            by</Typography>
+                                        <Typography>{auction.sellerFirstName} {auction.sellerLastName}</Typography>
+                                    </Grid>
+
+
+                                </Grid>
+                            </Paper>
+
+                            <Typography variant="button" gutterBottom component="div"
+                                        sx={{marginTop: 5, marginBottom: 1.5}}>
+                                MANAGE
+                            </Typography>
+
+                            <Button variant="outlined" sx={{marginRight: 3}}>Edit this listing</Button>
+                            <Button variant="outlined" sx={{marginRight: 3}}>Accept highest bid</Button>
 
 
 
+                        </Box>
+
+
+                    </Grid>
+
+                </Grid><Box sx={{m: 0, marginBottom: 5}}>
+                    {errorFlag && <Alert severity="error">
+                        <AlertTitle>Error</AlertTitle>
+                        {errorMessage}
+                    </Alert>}
+                </Box></>
+
+
+            }
 
         </Container>
 

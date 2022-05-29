@@ -74,7 +74,7 @@ const User = () => {
     }
 
     const handleEditUser = () => {
-        navigator('/user/edit')
+        navigator('/users/edit')
     }
 
     const handleClickOpen = () => {

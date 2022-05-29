@@ -38,13 +38,16 @@ function App() {
                 <Route path="register" element={<SignUp/>}/>
 
                 // Page not found
-                <Route path="" element={<HomePage/>}/>
+                <Route path="" element={<Auctions/>}/>
 
                 // User login
                 <Route path={"login"} element={<Login/>} />
 
                 // User ID
-                <Route path="user" element={<User/>}/>
+                <Route path="/users/:id" element={<User/>}/>
+
+                // User ID
+                <Route path="/users/manage" element={<User/>}/>
 
                 // Auction
                 <Route path="/auctions/:id" element={<Auction/>}/>
@@ -56,7 +59,7 @@ function App() {
                 <Route path={"/auctions"} element={<Auctions/>} />
 
                 // User edit their own profile
-                <Route path="/user/edit" element={<EditUser/>}/>
+                <Route path="/users/edit" element={<EditUser/>}/>
 
               {/*<Route path="users" element = {<Users/>}/>*/}
 

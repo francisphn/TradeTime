@@ -29,7 +29,7 @@ export default function Login() {
 
     React.useEffect(() => {
         if (isThereCookie()) {
-            navigator('/user')
+            navigator('/users/manage')
         }
     })
 

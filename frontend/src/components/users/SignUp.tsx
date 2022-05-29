@@ -42,7 +42,7 @@ export default function SignUp() {
 
     React.useEffect(() => {
         if (isThereCookie()) (
-            navigator('/user')
+            navigator('/users/manage')
         )
 
         if (!profileImageFile) {
@@ -71,7 +71,7 @@ export default function SignUp() {
         const password = data.get('password')
 
         if (firstName === null || lastName === null || email === null || password === null) {
-            setErrorFlag(false)
+            setErrorFlag(true)
             setErrorMessage("One of the fields is blank!")
         } else {
             const registerMe = await register(firstName.toString(), lastName.toString(), email.toString(), password.toString())

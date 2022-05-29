@@ -54,6 +54,7 @@ export default function EditUser() {
         }
         handleLoadUserDetails().then(r => {
             setUserData(r.data)
+            console.log(r.data)
         })
 
         if (!profileImageFile) {
@@ -179,7 +180,7 @@ export default function EditUser() {
                     <label htmlFor="contained-button-file">
                         <Input accept="image/*" id="contained-button-file" type="file" onChange={handleSubmitProfilePhoto} />
                         <Button variant="outlined" component="span" fullWidth sx={{ mt: 3, mb: 2 }}>
-                            Set my profile photo
+                            Edit my profile photo
                         </Button>
                     </label>
 
@@ -196,7 +197,7 @@ export default function EditUser() {
                                 id="firstName"
                                 label="First name"
                                 autoFocus
-
+                                defaultValue={userData.firstName}
                             />
                         </Grid>
                         <Grid item xs={12} sm={6}>
@@ -206,7 +207,7 @@ export default function EditUser() {
                                 label="Last name"
                                 name="lastName"
                                 autoComplete="family-name"
-
+                                defaultValue={userData.lastName}
                             />
                         </Grid>
                         <Grid item xs={12}>
@@ -216,6 +217,7 @@ export default function EditUser() {
                                 label="Email address"
                                 name="email"
                                 autoComplete="email"
+
 
                             />
                         </Grid>
