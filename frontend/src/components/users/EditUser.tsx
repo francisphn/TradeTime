@@ -38,6 +38,11 @@ export default function EditUser() {
     const [errorFlag, setErrorFlag] = React.useState(false)
     const [errorMessage, setErrorMessage] = React.useState("")
 
+
+    const [errorAuthorisationFlag, setErrorAuthorisationFlag] = React.useState(false)
+    const [errorAuthorisationMessage, setErrorAuthorisationMessage] = React.useState("")
+
+
     const [profileImageFile, setProfileImageFile] = React.useState()
     const [isFilePicked, setIsFilePicked] = React.useState(false)
     const [preview, setPreview] = React.useState("")
@@ -54,7 +59,6 @@ export default function EditUser() {
         }
         handleLoadUserDetails().then(r => {
             setUserData(r.data)
-            console.log(r.data)
         })
 
         if (!profileImageFile) {
@@ -69,10 +73,15 @@ export default function EditUser() {
         return () => URL.revokeObjectURL(objectUrl)
 
 
-    }, [profileImageFile])
+    }, [profileImageFile, userData])
 
     const handleLoadUserDetails = async () => {
-        return await getUserFromBackend()
+        const response = await getUserFromBackend()
+        if (response.status === 404) {
+            setErrorAuthorisationFlag(true)
+            setErrorAuthorisationMessage("Something's wrong.")
+        }
+        return response
     }
 
     const handleLoadAvatar = async () => {
@@ -158,112 +167,129 @@ export default function EditUser() {
         <ThemeProvider theme={theme}>
             <Container component="main" maxWidth="xs">
 
-                <CssBaseline/>
-                <Box sx={{marginTop: 8, display: 'flex', flexDirection: 'column', alignItems: 'center',}} />
-
-                <Box sx={{marginBottom: 4}}>
-                    {errorFlag && <Alert severity="error">
-                        <AlertTitle>Error</AlertTitle>
-                        {errorMessage}
-                    </Alert>}
-                </Box>
-
-                <Box>
-                    <Avatar
-                        alt="Remy Sharp"
-                        src={preview}
-                        sx={{ marginBottom: 3, width: 56, height: 56}}
-                    />
-
-                    <Typography component="h1" variant="h5">Edit your profile</Typography>
-
-                    <label htmlFor="contained-button-file">
-                        <Input accept="image/*" id="contained-button-file" type="file" onChange={handleSubmitProfilePhoto} />
-                        <Button variant="outlined" component="span" fullWidth sx={{ mt: 3, mb: 2 }}>
-                            Edit my profile photo
-                        </Button>
-                    </label>
-
-                </Box>
+                {errorAuthorisationFlag && <Alert severity="error">
+                    <AlertTitle>Error</AlertTitle>
+                    {errorAuthorisationMessage}</Alert>}
 
 
-                <Box component="form" noValidate onSubmit={handleSubmit} sx={{ mt: 3 }}>
-                    <Grid container spacing={2}>
-                        <Grid item xs={12} sm={6}>
-                            <TextField
-                                autoComplete="given-name"
-                                name="firstName"
-                                fullWidth
-                                id="firstName"
-                                label="First name"
-                                autoFocus
-                                defaultValue={userData.firstName}
+                {!errorAuthorisationFlag &&
+
+                    <>
+
+                        <Box sx={{marginTop: 8, display: 'flex', flexDirection: 'column', alignItems: 'center',}}/>
+
+                        <Box sx={{marginBottom: 4}}>
+                            {errorFlag && <Alert severity="error">
+                                <AlertTitle>Error</AlertTitle>
+                                {errorMessage}
+                            </Alert>}
+                        </Box>
+
+                        <Box>
+                            <Avatar
+                                alt="Remy Sharp"
+                                src={preview}
+                                sx={{marginBottom: 3, width: 56, height: 56}}
                             />
-                        </Grid>
-                        <Grid item xs={12} sm={6}>
-                            <TextField
+
+                            <Typography component="h1" variant="h5">Edit your profile</Typography>
+
+                            <label htmlFor="contained-button-file">
+                                <Input accept="image/*" id="contained-button-file" type="file"
+                                       onChange={handleSubmitProfilePhoto}/>
+                                <Button variant="outlined" component="span" fullWidth sx={{mt: 3, mb: 2}}>
+                                    Edit my profile photo
+                                </Button>
+                            </label>
+
+                        </Box>
+
+
+                        <Box component="form" onSubmit={handleSubmit} sx={{mt: 3}}>
+                            <Grid container spacing={2}>
+                                <Grid item xs={12} sm={6}>
+                                    <TextField
+                                        autoComplete="given-name"
+                                        name="firstName"
+                                        fullWidth
+                                        id="firstName"
+                                        label="First name"
+                                        autoFocus
+                                        defaultValue={userData.firstName}
+                                    />
+                                </Grid>
+                                <Grid item xs={12} sm={6}>
+                                    <TextField
+                                        fullWidth
+                                        id="lastName"
+                                        label="Last name"
+                                        name="lastName"
+                                        autoComplete="family-name"
+                                        defaultValue={userData.lastName}
+                                    />
+                                </Grid>
+                                <Grid item xs={12}>
+                                    <TextField
+                                        fullWidth
+                                        id="email"
+                                        label="Email address"
+                                        name="email"
+                                        defaultValue={userData.email}
+                                        autoComplete="email"
+
+
+                                    />
+                                </Grid>
+
+
+                                <Grid item xs={12}>
+
+                                    <Alert severity="info" sx={{marginTop: 3, marginBottom: 2}}>If you need to reset
+                                        your password, enter it here. Otherwise, feel free to skip this section.</Alert>
+
+                                    <TextField
+                                        fullWidth
+                                        name="current-password"
+                                        label="Current password"
+                                        type="password"
+                                        id="current-password"
+                                        autoComplete="new-password"
+                                    />
+                                </Grid>
+
+                                <Grid item xs={12}>
+                                    <TextField
+                                        fullWidth
+                                        name="password"
+                                        label="New password"
+                                        type="password"
+                                        id="password"
+                                        autoComplete="new-password"
+                                    />
+                                </Grid>
+
+                            </Grid>
+
+
+                            <Button
+                                type="submit"
                                 fullWidth
-                                id="lastName"
-                                label="Last name"
-                                name="lastName"
-                                autoComplete="family-name"
-                                defaultValue={userData.lastName}
-                            />
-                        </Grid>
-                        <Grid item xs={12}>
-                            <TextField
-                                fullWidth
-                                id="email"
-                                label="Email address"
-                                name="email"
-                                autoComplete="email"
+                                variant="contained"
+                                sx={{mt: 5, mb: 2}} endIcon={<SendIcon/>}
+                            >
+                                Confirm details
+                            </Button>
+                            <Grid container justifyContent="flex-end">
+
+                            </Grid>
+                        </Box>
 
 
-                            />
-                        </Grid>
+                    </>
+
+                }
 
 
-
-                        <Grid item xs={12}>
-
-                            <Alert severity="info" sx={{marginTop: 3, marginBottom: 2}}>If you need to reset your password, enter it here. Otherwise, feel free to skip this section.</Alert>
-
-                            <TextField
-                                fullWidth
-                                name="current-password"
-                                label="Current password"
-                                type="password"
-                                id="current-password"
-                                autoComplete="new-password"
-                            />
-                        </Grid>
-
-                        <Grid item xs={12}>
-                            <TextField
-                                fullWidth
-                                name="password"
-                                label="New password"
-                                type="password"
-                                id="password"
-                                autoComplete="new-password"
-                            />
-                        </Grid>
-
-                    </Grid>
-
-
-                    <Button
-                        type="submit"
-                        fullWidth
-                        variant="contained"
-                        sx={{ mt: 5, mb: 2 }} endIcon={<SendIcon/>}
-                    >
-                        Confirm details
-                    </Button>
-                    <Grid container justifyContent="flex-end">
-
-                    </Grid>
-                </Box>
 
             </Container>
 

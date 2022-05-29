@@ -367,7 +367,7 @@ const Auction = () => {
 
                                 <Typography variant={"subtitle1"} align="center">{displayNumBids()}</Typography>
 
-                                {checkCurrent() &&
+                                {checkCurrent() && !checkIfSeller() &&
 
                                     <Button
                                         type="submit"
@@ -382,7 +382,31 @@ const Auction = () => {
 
                                 }
 
-                                {!(checkCurrent()) && !checkIfSeller() &&
+                                {checkCurrent() && checkIfSeller() &&
+
+                                    <>
+                                        <Grid container spacing={2} sx={{marginTop: 2, mb: 4}}>
+
+                                            <Grid item xs={6}>
+
+                                                <Button fullWidth variant="contained" sx={{marginRight: 3}}>Edit listing</Button>
+
+                                            </Grid>
+
+                                            <Grid item xs={6}>
+                                                <Button fullWidth variant="outlined" sx={{marginRight: 0}}>Accept highest bid</Button>
+
+                                            </Grid>
+
+
+
+                                        </Grid>
+
+                                    </>
+
+                                }
+
+                                {!(checkCurrent()) &&
 
                                     <Button
                                         type="submit"
@@ -511,8 +535,7 @@ const Auction = () => {
                                 MANAGE
                             </Typography>
 
-                            <Button variant="outlined" sx={{marginRight: 3}}>Edit this listing</Button>
-                            <Button variant="outlined" sx={{marginRight: 3}}>Accept highest bid</Button>
+
 
 
 

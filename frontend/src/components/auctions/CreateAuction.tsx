@@ -22,9 +22,6 @@ import Paper from "@mui/material/Paper";
 import SendIcon from "@mui/icons-material/Send";
 import {fetchAllCategories, userCreateAuction, userUploadImageAuction} from "../services/AuctionServices";
 import CardMedia from "@mui/material/CardMedia";
-import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 
 const theme = createTheme()
 

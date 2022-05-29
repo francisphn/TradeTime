@@ -20,6 +20,7 @@ import CreateAuction from "./components/auctions/CreateAuction";
 import Auctions from "./components/auctions/Auctions"
 import EditUser from "./components/users/EditUser";
 import Auction from "./components/auctions/Auction";
+import EditAuction from "./components/auctions/EditAuction";
 
 function App() {
   return (
@@ -51,6 +52,9 @@ function App() {
 
                 // Auction
                 <Route path="/auctions/:id" element={<Auction/>}/>
+
+                // Auction
+                <Route path="/auctions/:id/edit" element={<EditAuction/>}/>
 
                 // User create auction
                 <Route path="/auctions/create" element={<CreateAuction/>}/>

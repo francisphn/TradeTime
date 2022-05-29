@@ -86,3 +86,22 @@ export const userUploadImageAuction = async (image: any, auctionId: string) => {
             return error.response.statusText
         })
 }
+
+export const userPatchAuction = async (title: string, description: string, categoryId: number, endDate: string, reserve: number) => {
+
+    const axiosConfig = {headers: {"X-Authorization": getCookie("userToken")}}
+
+    return axios.patch('http://localhost:4941/api/v1/auctions/', {
+        "title": title,
+        "description": description,
+        "categoryId": categoryId,
+        "endDate": endDate,
+        "reserve": reserve
+    }, axiosConfig)
+        .then(response => {
+            return response
+        }, error => {
+            return error.response
+        })
+
+}
