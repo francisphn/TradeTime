@@ -11,7 +11,6 @@ import {BrowserRouter as Router, Routes, Route} from "react-router-dom";
 import NotFound from "./components/home/NotFound";          // Page not found
 
 import Login from "./components/users/Login";
-import HomePage from "./components/home/HomePage";
 import SignUp from "./components/users/SignUp";
 import Title from "./components/Title";
 import User from "./components/users/User";
@@ -48,7 +47,7 @@ function App() {
                 <Route path="/users/:id" element={<User/>}/>
 
                 // User ID
-                <Route path="/users/manage" element={<User/>}/>
+                <Route path="/users/:id/manage" element={<User/>}/>
 
                 // Auction
                 <Route path="/auctions/:id" element={<Auction/>}/>

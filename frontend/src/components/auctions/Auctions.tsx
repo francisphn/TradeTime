@@ -3,7 +3,16 @@ import {fetchAllAuctions, fetchAllCategories} from "../services/AuctionServices"
 import axios from "axios";
 
 import {alpha, styled} from '@mui/material/styles';
-import {Box, Pagination} from "@mui/material";
+import {
+    Box,
+    FormControl,
+    InputAdornment,
+    InputLabel,
+    Pagination,
+    Select,
+    SelectChangeEvent,
+    TextField
+} from "@mui/material";
 
 import Card from '@mui/material/Card';
 import CardActions from '@mui/material/CardActions';
@@ -23,59 +32,34 @@ import Button from "@mui/material/Button";
 import SearchIcon from "@mui/icons-material/Search";
 
 import InputBase from '@mui/material/InputBase';
+import MenuItem from "@mui/material/MenuItem";
+import Paper from "@mui/material/Paper";
+import {Simulate} from "react-dom/test-utils";
 
 
 const cards = [1, 2, 3, 4, 5, 6, 7, 8, 9];
 
-const Search = styled('div')(({ theme }) => ({
-    position: 'relative',
-    borderRadius: theme.shape.borderRadius,
-    backgroundColor: alpha(theme.palette.common.black, 0.05),
-    '&:hover': {
-        backgroundColor: alpha(theme.palette.common.black, 0.10),
-    },
-    marginLeft: 0,
-    width: '100%',
-    [theme.breakpoints.up('sm')]: {
-        marginLeft: theme.spacing(0),
-        width: 'auto',
-    },
-}));
 
-const SearchIconWrapper = styled('div')(({ theme }) => ({
-    padding: theme.spacing(0, 2),
-    height: '100%',
-    position: 'absolute',
-    pointerEvents: 'none',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-}));
 
-const StyledInputBase = styled(InputBase)(({ theme }) => ({
-    color: 'inherit',
-    '& .MuiInputBase-input': {
-        padding: theme.spacing(1, 1, 1, 0),
-        // vertical padding + font size from searchIcon
-        paddingLeft: `calc(1em + ${theme.spacing(4)})`,
-        transition: theme.transitions.create('width'),
-        width: '100%',
-        [theme.breakpoints.up('sm')]: {
-            width: '35ch',
-            '&:focus': {
-                width: '40ch',
-            },
-        },
-    },
-}));
+
 
 const theme = createTheme();
 
+const Item = styled(Paper)(({ theme }) => ({
+    backgroundColor: theme.palette.mode === 'dark' ? '#1A2027' : '#fff',
+    padding: theme.spacing(3),
+    color: theme.palette.text.secondary,
+}));
+
 export default function Auctions() {
     const navigator = useNavigate()
+
+
     const [auctionCount, setAuctionCount] = React.useState(-1)
 
     const [auctions, setAuctions] = React.useState<Array<auction>>([])
+
+    const [displayAuctions, setDisplayAuctions] = React.useState<Array<auction>>([])
 
     const [errorFlag, setErrorFlag] = React.useState(false)
     const [errorMessage, setErrorMessage] = React.useState("")
@@ -90,10 +74,13 @@ export default function Auctions() {
 
         getAuctions().then(r => {
             setAuctions(r.data.auctions)
+            setDisplayAuctions(r.data.auctions)
             setAuctionCount(r.data.count)
         }
         )
     }, [])
+
+
 
     const getAuctions = async () => {
         return await fetchAllAuctions();
@@ -109,6 +96,42 @@ export default function Auctions() {
 
     const handleClickLogIn = () => {
         navigator('/login')
+    }
+
+    const [chosenCategoryId, setChosenCategoryId] = React.useState("");
+    const [chosenSort, setChosenSort] = React.useState("");
+
+
+    const handleChange = (event: SelectChangeEvent) => {
+        setChosenCategoryId(event.target.value as string);
+    };
+
+    const handleChangeCategories = (event: SelectChangeEvent) => {
+        setChosenCategoryId(event.target.value as string);
+        console.log(event.target.value)
+    };
+
+    const handleChangeSort = (event: SelectChangeEvent) => {
+        setChosenSort(event.target.value as string);
+    };
+
+    const handleSubmit = async(event: React.FormEvent<HTMLFormElement>) => {
+
+        event.preventDefault()
+
+        const data = new FormData(event.currentTarget)
+
+        const queryString = data.get('query')
+        const categories = data.get('categories')
+        const sort = data.get('sort')
+        const status = data.get('status')
+
+        console.log(queryString)
+        console.log(categories)
+        console.log(sort)
+        console.log(status)
+
+
     }
 
     return (
@@ -136,33 +159,115 @@ export default function Auctions() {
                         <Typography variant="h5" align="center" color="text.secondary" paragraph>
                             TradeTime is your one-stop site for all things auctions. Discover {auctionCount.toString()} listings on now!
                         </Typography>
-                        <Stack
-                            sx={{ pt: 4 }}
-                            direction="row"
-                            spacing={1}
-                            justifyContent="center"
-                        >
-                            <Search >
-                                <SearchIconWrapper>
-                                    <SearchIcon />
-                                </SearchIconWrapper>
-                                <StyledInputBase
-                                    placeholder="What would you like to buy?"
-                                    inputProps={{ 'aria-label': 'search' }}
-                                />
-                            </Search>
+
+                        <Item sx={{ mt: 3 }}>
+
+                            <Box component="form" noValidate onChange={handleSubmit} >
+
+                                <Typography variant={"h6"} sx={{mb: 1}}>Start your search...</Typography>
+
+                                <TextField
+                                    autoFocus
+                                    name="query"
+                                    margin="dense"
+                                    id="query"
+                                    label="Try searching a user or a keyword"
+                                    InputProps={{startAdornment: <InputAdornment position="start"><SearchIcon/></InputAdornment>,}}
+                                    type="text"
+                                    fullWidth
+                                    variant="outlined" sx={{marginBottom: 2}}/>
+
+                                <Grid container spacing={2}>
+
+                                    <Grid item xs={12} sm={4}>
 
 
-                        </Stack>
+                                        <FormControl fullWidth>
+                                            <InputLabel id="demo-simple-select-label">Categories</InputLabel>
+                                            <Select
+                                                labelId="category"
+                                                id="category"
+                                                name={"categories"}
+                                                label="Categories"
+                                                defaultValue={"All categories"}
+                                                onChange={handleChangeCategories}
+                                            >
 
-                        <Grid container spacing={2} >
+                                                <MenuItem key={"All categories"} value={"All categories"}>All categories</MenuItem>
 
-                            <Grid item xs={6} justifyContent="center"><Button variant="contained" onClick={handleClickRegister}>Create auction</Button></Grid>
+                                                {categories.map(category =>
+                                                    <MenuItem key={(category.categoryId +1).toString()} value={(category.categoryId +1).toString()}>{category.name}</MenuItem>
+                                                )}
+
+                                            </Select>
+                                        </FormControl>
+
+                                    </Grid>
+
+                                    <Grid item xs={12} sm={4}>
 
 
-                            <Grid item xs={6}><Button variant="outlined" onClick={handleClickLogIn}>Log in</Button></Grid>
+                                        <FormControl fullWidth>
+                                            <InputLabel id="demo-simple-select-label">Sort listings by</InputLabel>
+                                            <Select
+                                                labelId="category"
+                                                id="sort"
+                                                name="sort"
+                                                label="Sort listings by"
+                                                defaultValue={"Closing soon"}
+                                            >
 
-                        </Grid>
+
+                                                <MenuItem key={"Current bid (low-high)"} value={"Current bid (low-high)"}>Current bid (low-high)</MenuItem>
+                                                <MenuItem key={"Current bid (high-low)"} value={"Current bid (high-low)"}>Current bid (high-low)</MenuItem>
+                                                <MenuItem key={"Alphabetical (A-Z)"} value={"Alphabetical (A-Z)"}>Alphabetical (A-Z)</MenuItem>
+                                                <MenuItem key={"Alphabetical (Z-A)"} value={"Alphabetical (Z-A)"}>Alphabetical (Z-A)</MenuItem>
+                                                <MenuItem key={"Closing soon"} value={"Closing soon"}>Closing soon</MenuItem>
+                                                <MenuItem key={"Closing last"} value={"Closing last"}>Closing last</MenuItem>
+                                                <MenuItem key={"Reserve price lowest"} value={"Reserve price lowest"}>Reserve price lowest</MenuItem>
+                                                <MenuItem key={"Reserve price highest"} value={"Reserve price highest"}>Reserve price highest</MenuItem>
+
+                                            </Select>
+                                        </FormControl>
+
+                                    </Grid>
+
+                                    <Grid item xs={12} sm={4}>
+
+
+                                        <FormControl fullWidth>
+                                            <InputLabel id="demo-simple-select-label">Status</InputLabel>
+                                            <Select
+                                                labelId="category"
+                                                id="status"
+                                                name="status"
+                                                label="Status"
+                                                defaultValue={"Open"}
+                                            >
+
+                                                <MenuItem key={"Open"} value={"Open"}>Open</MenuItem>
+                                                <MenuItem key={"Closed"} value={"Closed"}>Closed</MenuItem>
+                                                <MenuItem key={"All listings"} value={"All listings"}>All listings</MenuItem>
+
+                                            </Select>
+                                        </FormControl>
+
+                                    </Grid>
+
+
+
+
+
+                                </Grid>
+
+
+
+                            </Box>
+
+                        </Item>
+
+
+
 
 
 

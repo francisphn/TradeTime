@@ -56,6 +56,16 @@ export const getUserFromBackend = async () => {
         })
 }
 
+export const getRelaxedUserFromBackend = async () => {
+
+    return await axios.get('http://localhost:4941/api/v1/users/'+ getCookie("userId"))
+        .then(response => {
+            return response
+        }, error => {
+            return error.response.statusText
+        })
+}
+
 export const editUser = async (firstName: string, lastName: string, email: string) => {
 
     const axiosConfig = {headers: {"X-Authorization": getCookie("userToken")}}

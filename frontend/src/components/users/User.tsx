@@ -55,8 +55,15 @@ const User = () => {
     React.useEffect(() => {
         if (!isThereCookie()) {
             navigator('/login')
+        } else {
+
         }
-        handleLoadUserDetails().then(r => setUserData(r.data))
+        handleLoadUserDetails().then(r => {
+            if (r.status === 404) {
+                navigator('/login')
+            }
+            setUserData(r.data)
+        })
 
         setUserAvatar("http://localhost:4941/api/v1/users/"+ getCookie('userId') + "/image")
 

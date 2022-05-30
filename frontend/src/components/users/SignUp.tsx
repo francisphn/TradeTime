@@ -20,7 +20,7 @@ import {useNavigate} from "react-router-dom";
 
 import axios from "axios";
 
-import {isThereCookie, setCookie} from "../services/CookiesService";
+import {getCookie, isThereCookie, setCookie} from "../services/CookiesService";
 
 
 const theme = createTheme()
@@ -42,7 +42,7 @@ export default function SignUp() {
 
     React.useEffect(() => {
         if (isThereCookie()) (
-            navigator('/users/manage')
+            navigator('/users/'+ getCookie("userId") +"/manage")
         )
 
         if (!profileImageFile) {
@@ -104,7 +104,7 @@ export default function SignUp() {
                         }
                     }
 
-                    navigator("/user")
+                    navigator('/users/' + getCookie("userId") + "/manage")
                     
 
                 } else {

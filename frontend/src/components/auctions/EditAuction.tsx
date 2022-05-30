@@ -20,10 +20,11 @@ import MenuItem from "@mui/material/MenuItem";
 import {getCookie, isThereCookie} from "../services/CookiesService";
 import Paper from "@mui/material/Paper";
 import SendIcon from "@mui/icons-material/Send";
+import DeleteIcon from '@mui/icons-material/Delete';
 import {
     fetchAllCategories,
     fetchAuction,
-    userCreateAuction,
+    userCreateAuction, userDeleteListing,
     userPatchAuction,
     userUploadImageAuction
 } from "../services/AuctionServices";
@@ -88,20 +89,27 @@ export default function EditAuction() {
             setCategories(r.data)
         })
 
+
+
         if (!isThereCookie()) {
             navigator('/login')
         }
 
         handleLoadAuction().then((r) => {
+
             setAuction(r.data)
-            console.log(r.data)
+
             checkIfSeller()
+            checkIfBiddingStarted()
         })
 
-
+        setChosenCategoryId(auction.categoryId.toString())
 
         if (!imageFile) {
-            setPreview("http://localhost:4941/api/v1/auctions/" + auction.auctionId.toString() + "/image/")
+            if (!userManuallyRemovePhoto) {
+                setPreview("http://localhost:4941/api/v1/auctions/" + auction.auctionId.toString() + "/image/")
+
+            }
             return
         } else {
 
@@ -119,14 +127,18 @@ export default function EditAuction() {
 
     }, [imageFile, auction])
 
+    const checkIfBiddingStarted = () => {
+        if (auction.numBids > 0) {
+            setErrorAuthorisationFlag(true)
+            setErrorAuthorisationMessage("Bidding has started, so you can't edit this listing.")
+        }
+    }
+
     const checkIfSeller = () => {
-        console.log(2)
         if (getCookie("userId") === auction.sellerId.toString()) {
-            console.log(3)
             setErrorAuthorisationFlag(false)
             setErrorAuthorisationMessage("")
         } else {
-            console.log("sds")
             setErrorAuthorisationFlag(true)
             setErrorAuthorisationMessage("You're unable to edit this listing.")
         }
@@ -159,7 +171,8 @@ export default function EditAuction() {
         const endDate = data.get('expiration')
         const reserve = data.get('amount')
 
-        console.log(reserve)
+        console.log(category)
+        console.log(title, description, endDate, reserve)
 
         if (title === null || category === null || description === null || reserve === null || endDate === null) {
             setErrorFlag(true)
@@ -167,32 +180,33 @@ export default function EditAuction() {
         } else if (title === "" || category === "" || description === "" || endDate === "") {
             setErrorFlag(true)
             setErrorMessage("One of the fields is blank!")
-        } else if (!isFilePicked) {
+        } else if (userManuallyRemovePhoto) {
             setErrorFlag(true)
             setErrorMessage("You need to have an image!")
         } else {
             let patchMyAuction;
             if (reserve === "") {
-                patchMyAuction = await userPatchAuction(title.toString(), description.toString(), parseInt(category), endDate.toString(), 0)
+                patchMyAuction = await userPatchAuction(auction.auctionId, title.toString(), description.toString(), parseInt(category), endDate.toString(), 0)
             } else {
-                patchMyAuction = await userPatchAuction(title.toString(), description.toString(), parseInt(category), endDate.toString(), parseInt(reserve.toString()))
+                patchMyAuction = await userPatchAuction(auction.auctionId, title.toString(), description.toString(), parseInt(category), endDate.toString(), parseInt(reserve.toString()))
             }
 
-            if (patchMyAuction.status === 201) {
+            if (patchMyAuction.status === 200) {
 
                 if (isFilePicked) {
-                    const uploadPhoto = await userUploadImageAuction(imageFile, patchMyAuction.data.auctionId)
-                    if (uploadPhoto.status === 201) {
-                        navigator('/auctions/' + patchMyAuction.data.auctionId)
+                    const uploadPhoto = await userUploadImageAuction(imageFile, auction.auctionId.toString())
+                    if (uploadPhoto.status === 201 || uploadPhoto.status === 200) {
+                        navigator('/auctions/' + auction.auctionId)
                     } else {
                         setErrorFlag(true)
                         setErrorMessage(uploadPhoto.statusText)
                     }
                 } else {
-                    navigator('/auctions/' + patchMyAuction.data.auctionId)
+                    navigator('/auctions/' + auction.auctionId)
                 }
 
             } else {
+                console.log(patchMyAuction)
                 setErrorFlag(true)
                 setErrorMessage(patchMyAuction.statusText)
             }
@@ -204,14 +218,33 @@ export default function EditAuction() {
     const handleSubmitPhoto = (event: any) => {
         setImageFile(event.target.files[0])
         setIsFilePicked(true);
+        setUserManuallyRemovePhoto(false)
     }
 
+    const [userManuallyRemovePhoto, setUserManuallyRemovePhoto] = React.useState(false)
+
     const handleAbortPhoto = () => {
+        setPreview("")
+        setUserManuallyRemovePhoto(true)
         setImageFile(undefined)
         setIsFilePicked(false)
     }
 
-    const [chosenCategoryId, setChosenCategoryId] = React.useState('');
+    const handleDeleteAuction = async () => {
+        const deleteMyListing = await userDeleteListing(auction.auctionId)
+        if (deleteMyListing.status === 200) {
+            setErrorFlag(false)
+            setErrorMessage("")
+            navigator('/')
+        }
+        else {
+            setErrorFlag(true)
+            setErrorMessage(deleteMyListing.statusText)
+        }
+
+    }
+
+    const [chosenCategoryId, setChosenCategoryId] = React.useState("");
 
     const getExpiration = () => {
 
@@ -316,12 +349,13 @@ export default function EditAuction() {
                                             <Select
                                                 labelId="category"
                                                 id="category"
-                                                value={auction.categoryId.toString()}
+                                                defaultValue={(auction.categoryId + 1).toString()}
+                                                value={(auction.categoryId + 1).toString()}
                                                 label="Select a category"
                                                 onChange={handleChange}>
 
                                                 {categories.map(category =>
-                                                    <MenuItem key={category.categoryId} value={category.categoryId}>{category.name}</MenuItem>
+                                                    <MenuItem key={(category.categoryId +1).toString()} value={(category.categoryId +1).toString()}>{category.name}</MenuItem>
                                                 )}
 
                                             </Select>
@@ -389,7 +423,7 @@ export default function EditAuction() {
                                     </Grid>
 
                                     <Grid item xs={6}>
-                                        <Button fullWidth variant="contained" sx={{marginRight: 0}} endIcon={<SendIcon/>} color={"error"}>Delete listing</Button>
+                                        <Button fullWidth variant="contained" sx={{marginRight: 0}} endIcon={<DeleteIcon/>} color={"error"} onClick={handleDeleteAuction}>Delete listing</Button>
 
                                     </Grid>
 

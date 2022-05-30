@@ -4,7 +4,7 @@ import axios from "axios";
 import Box from "@mui/material/Box";
 import Avatar from "@mui/material/Avatar";
 import Typography from "@mui/material/Typography";
-import {Alert, AlertTitle, Breadcrumbs, InputAdornment, TableHead, TextField} from "@mui/material";
+import {Alert, AlertTitle, Breadcrumbs, InputAdornment, SelectChangeEvent, TableHead, TextField} from "@mui/material";
 import Button from "@mui/material/Button";
 import Dialog from "@mui/material/Dialog";
 import DialogTitle from "@mui/material/DialogTitle";
@@ -99,6 +99,9 @@ const Auction = () => {
 
         })
     }, [open])
+
+
+
 
     const checkIfSeller = () => {
         if (getCookie("userId") === auction.sellerId.toString()) {
@@ -389,7 +392,7 @@ const Auction = () => {
 
                                             <Grid item xs={6}>
 
-                                                <Button fullWidth variant="contained" sx={{marginRight: 3}}>Edit listing</Button>
+                                                <Button fullWidth variant="contained" sx={{marginRight: 3}} href={"/auctions/" + auction.auctionId + "/edit/"}>Edit listing</Button>
 
                                             </Grid>
 

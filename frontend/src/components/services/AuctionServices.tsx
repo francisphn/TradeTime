@@ -87,21 +87,32 @@ export const userUploadImageAuction = async (image: any, auctionId: string) => {
         })
 }
 
-export const userPatchAuction = async (title: string, description: string, categoryId: number, endDate: string, reserve: number) => {
+export const userPatchAuction = async (auctionId: number, title: string, description: string, categoryId: number, endDate: string, reserve: number) => {
 
     const axiosConfig = {headers: {"X-Authorization": getCookie("userToken")}}
 
-    return axios.patch('http://localhost:4941/api/v1/auctions/', {
+    return axios.patch('http://localhost:4941/api/v1/auctions/' + auctionId.toString(),
+        {
         "title": title,
         "description": description,
         "categoryId": categoryId,
         "endDate": endDate,
         "reserve": reserve
-    }, axiosConfig)
+        }, axiosConfig)
         .then(response => {
             return response
         }, error => {
             return error.response
         })
 
+}
+
+export const userDeleteListing = async (auctionId: number) => {
+    const axiosConfig = {headers: {"X-Authorization": getCookie("userToken")}}
+
+    return axios.delete('http://localhost:4941/api/v1/auctions/' + auctionId.toString(), axiosConfig).then(response => {
+        return response
+    }, error => {
+        return error.response
+    })
 }
