@@ -1,4 +1,4 @@
-# SENG365 2022 Assignment 1 API Reference Server
+# SENG365 API server
 
 
 ## Deploying
