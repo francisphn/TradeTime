@@ -50,7 +50,7 @@ export default function Login() {
                 setCookie("userToken", logMeIn.data['token'])
                 setErrorFlag(false)
                 setErrorMessage("")
-                navigator('/user')
+                navigator('/users/manage')
             } else {
                 setErrorFlag(true)
                 setErrorMessage(logMeIn)

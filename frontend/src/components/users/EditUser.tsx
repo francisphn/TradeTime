@@ -9,6 +9,7 @@ import Typography from '@mui/material/Typography';
 import Container from '@mui/material/Container';
 
 import {
+    deleteUserAvatar,
     editUser,
     getUserAvatar,
     getUserFromBackend,
@@ -39,6 +40,7 @@ export default function EditUser() {
     const [errorMessage, setErrorMessage] = React.useState("")
 
 
+
     const [errorAuthorisationFlag, setErrorAuthorisationFlag] = React.useState(false)
     const [errorAuthorisationMessage, setErrorAuthorisationMessage] = React.useState("")
 
@@ -62,7 +64,11 @@ export default function EditUser() {
         })
 
         if (!profileImageFile) {
-            setPreview("http://localhost:4941/api/v1/users/"+ getCookie('userId') + "/image")
+            if (!userManuallyRemovePhoto) {
+
+                setPreview("http://localhost:4941/api/v1/users/"+ getCookie('userId') + "/image")
+            }
+
             return
         }
 
@@ -138,8 +144,19 @@ export default function EditUser() {
                 }
             }
 
+            if (userManuallyRemovePhoto) {
+                const photoMe = await deleteUserAvatar(getCookie("userId"))
+                if (photoMe.status === 200 || photoMe.status === 201) {
+                    setErrorFlag(false)
+                    setErrorMessage("")
+                } else {
+                    setErrorFlag(true)
+                    setErrorMessage(photoMe)
+                }
+            }
+
             if ((currentPassword === "" || currentPassword === null) && (newPassword === "" || newPassword === null)) {
-                navigator('/user')
+                navigator('/users/manage')
             } else if (currentPassword === "" || currentPassword === null || newPassword === "" || newPassword === null) {
                 setErrorFlag(true)
                 setErrorMessage("Either your current password or new password field is blank.")
@@ -161,6 +178,16 @@ export default function EditUser() {
     const handleSubmitProfilePhoto = (event: any) => {
         setProfileImageFile(event.target.files[0])
         setIsFilePicked(true);
+        setUserManuallyRemovePhoto(false)
+    }
+
+    const [userManuallyRemovePhoto, setUserManuallyRemovePhoto] = React.useState(false)
+
+    const handleAbortPhoto = () => {
+        setPreview("")
+        setUserManuallyRemovePhoto(true)
+        setProfileImageFile(undefined)
+        setIsFilePicked(false)
     }
 
     return (
@@ -201,6 +228,10 @@ export default function EditUser() {
                                     Edit my profile photo
                                 </Button>
                             </label>
+
+                            <Button variant="outlined" component="span" sx={{ mt: 3, mb: 2, ml: 2 }} onClick={handleAbortPhoto}>
+                                Remove photo
+                            </Button>
 
                         </Box>
 

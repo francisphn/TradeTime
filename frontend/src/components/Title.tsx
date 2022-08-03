@@ -18,7 +18,7 @@ import { styled, alpha } from '@mui/material/styles';
 import InputBase from '@mui/material/InputBase';
 
 import SearchIcon from '@mui/icons-material/Search';
-import { isThereCookie } from './services/CookiesService';
+import {getCookie, isThereCookie} from './services/CookiesService';
 
 
 const pages = ['Advanced Search'];
@@ -156,35 +156,19 @@ const ResponsiveAppBar = () => {
                         </Menu>
                     </Box>
 
-                    <Search >
-                        <SearchIconWrapper>
-                            <SearchIcon />
-                        </SearchIconWrapper>
-                        <StyledInputBase
-                            placeholder="What would you like to buy?"
-                            inputProps={{ 'aria-label': 'search' }}
-                        />
-                    </Search>
+
 
 
                     <Box sx={{ marginLeft: 2, flexGrow: 1, display: { xs: 'none', md: 'flex' } }}>
-                        {pages.map((page) => (
-                            <Button
-                                key={page}
-                                onClick={handleCloseNavMenu}
-                                sx={{ my: 2, color: 'white', display: 'block' }}
-                            >
-                                {page}
-                            </Button>
-                        ))}
+
                     </Box>
 
 
 
                     <Box sx={{ flexGrow: 0 }}>
                         <Tooltip title="Open settings">
-                            <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
-                                <Avatar alt="Remy Sharp" src="/static/images/avatar/2.jpg" />
+                            <IconButton href={'/users/manage'} sx={{ p: 0 }}>
+                                <Avatar alt="" src={"http://localhost:4941/api/v1/users/" + getCookie("userId") + "/image"} />
                             </IconButton>
                         </Tooltip>
                         <Menu

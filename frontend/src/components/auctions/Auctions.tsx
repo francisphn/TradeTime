@@ -7,7 +7,7 @@ import {
     Box,
     FormControl,
     InputAdornment,
-    InputLabel,
+    InputLabel, OutlinedInput,
     Pagination,
     Select,
     SelectChangeEvent,
@@ -35,12 +35,22 @@ import InputBase from '@mui/material/InputBase';
 import MenuItem from "@mui/material/MenuItem";
 import Paper from "@mui/material/Paper";
 import {Simulate} from "react-dom/test-utils";
+import auction from "./Auction";
 
 
 const cards = [1, 2, 3, 4, 5, 6, 7, 8, 9];
 
 
-
+const ITEM_HEIGHT = 48;
+const ITEM_PADDING_TOP = 8;
+const MenuProps = {
+    PaperProps: {
+        style: {
+            maxHeight: ITEM_HEIGHT * 4.5 + ITEM_PADDING_TOP,
+            width: 250,
+        },
+    },
+};
 
 
 const theme = createTheme();
@@ -60,6 +70,7 @@ export default function Auctions() {
     const [auctions, setAuctions] = React.useState<Array<auction>>([])
 
     const [displayAuctions, setDisplayAuctions] = React.useState<Array<auction>>([])
+    const [pageAuctions, setPageAuctions] = React.useState<Array<auction>>([])
 
     const [errorFlag, setErrorFlag] = React.useState(false)
     const [errorMessage, setErrorMessage] = React.useState("")
@@ -75,9 +86,14 @@ export default function Auctions() {
         getAuctions().then(r => {
             setAuctions(r.data.auctions)
             setDisplayAuctions(r.data.auctions)
-            setAuctionCount(r.data.count)
+
+            setAuctionCount(r.data.count);
+            setDisplayAuctionCount(r.data.count);
+            setPageAuctions(r.data.auctions.slice(0, 6))
         }
         )
+
+
     }, [])
 
 
@@ -115,6 +131,81 @@ export default function Auctions() {
         setChosenSort(event.target.value as string);
     };
 
+
+    // <MenuItem key={"Current bid (low-high)"} value={"Current bid (low-high)"}>Current bid (low-high)</MenuItem>
+    // <MenuItem key={"Current bid (high-low)"} value={"Current bid (high-low)"}>Current bid (high-low)</MenuItem>
+    // <MenuItem key={"Alphabetical (A-Z)"} value={"Alphabetical (A-Z)"}>Alphabetical (A-Z)</MenuItem>
+    // <MenuItem key={"Alphabetical (Z-A)"} value={"Alphabetical (Z-A)"}>Alphabetical (Z-A)</MenuItem>
+    // <MenuItem key={"ExpirationLast"} value={"Closing soon"}>Date of expiration (latest-earliest)</MenuItem>
+    // <MenuItem key={"ExpirationFirst"} value={"Closing last"}>Date of expiration (earliest-latest)</MenuItem>
+    // <MenuItem key={"Reserve price lowest"} value={"Reserve price lowest"}>Reserve price lowest</MenuItem>
+    // <MenuItem key={"Reserve price highest"} value={"Reserve price highest"}>Reserve price highest</MenuItem>
+
+    function sortCurrentBidLowHigh(a: auction, b: auction) : number {
+        if (Number(a.highestBid) < Number(b.highestBid)) {
+            return -1
+        }
+        return 1
+    }
+
+    function sortCurrentBidHighLow(a: auction, b: auction) : number {
+        if (Number(a.highestBid) > Number(b.highestBid)) {
+            return -1
+        }
+        return 1
+    }
+
+    function sortAlphabeticalAZ(a: auction, b: auction) : number {
+        if (a.title.slice(0, 1) < b.title.slice(0, 1)) {
+            return -1
+        }
+        return 1
+    }
+
+    function sortAlphabeticalZA(a: auction, b: auction) : number {
+        if (a.title.slice(0, 1) > b.title.slice(0, 1)) {
+            return -1
+        }
+        return 1
+    }
+
+    function sortExpirationLast(a: auction, b: auction) : number {
+        const now = new Date(a.endDate)
+        const forever = new Date(b.endDate)
+
+        if (now > forever) {
+
+            return -1
+        }
+        return 1
+    }
+
+    function sortExpirationFirst(a: auction, b: auction) : number {
+        const now = new Date(a.endDate)
+        const forever = new Date(b.endDate)
+
+        if (now > forever) {
+            console.log("Nice")
+            return 1
+        }
+        return -1
+    }
+
+    function sortReserveLowest(a: auction, b: auction) : number {
+        if (Number(a.reserve) < Number(b.reserve)) {
+
+            return -1
+        }
+        return 1
+    }
+
+    function sortReserveHighest(a: auction, b: auction) : number {
+        if (Number(a.reserve) > Number(b.reserve)) {
+            return -1
+        }
+        return 1
+    }
+
     const handleSubmit = async(event: React.FormEvent<HTMLFormElement>) => {
 
         event.preventDefault()
@@ -126,13 +217,105 @@ export default function Auctions() {
         const sort = data.get('sort')
         const status = data.get('status')
 
-        console.log(queryString)
-        console.log(categories)
-        console.log(sort)
-        console.log(status)
 
+        let results: auction[] = [];
+
+        if (queryString === null || categories === null || sort === null || status === null) {
+
+        } else {
+
+            let now = new Date();
+
+            (auctions.map(auction => {
+                let expiration = new Date(auction.endDate)
+
+                // if (auction.title === "HP Laptop") {
+                //     console.log(auction.categoryId)
+                // }
+
+                if (
+                    (auction.categoryId === parseInt(categories.toString()) || categories.toString() === "All categories") &&
+                    (auction.title.includes(queryString.toString().charAt(0).toUpperCase() + queryString.toString().slice(1)) || auction.title.includes(queryString.toString()) || queryString === "")) {
+                    if (status === "Open") {
+                        if (expiration > now) {
+                            results.push(auction)
+                        }
+                    } else if (status === "Closed") {
+                        if (expiration < now) {
+                            results.push(auction)
+                        }
+                    } else {
+                        results.push(auction)
+                    }
+                }
+            }))
+        }
+
+        // <MenuItem key={"Current bid (low-high)"} value={"Current bid (low-high)"}>Current bid (low-high)</MenuItem>
+        // <MenuItem key={"Current bid (high-low)"} value={"Current bid (high-low)"}>Current bid (high-low)</MenuItem>
+        // <MenuItem key={"Alphabetical (A-Z)"} value={"Alphabetical (A-Z)"}>Alphabetical (A-Z)</MenuItem>
+        // <MenuItem key={"Alphabetical (Z-A)"} value={"Alphabetical (Z-A)"}>Alphabetical (Z-A)</MenuItem>
+        // <MenuItem key={"ExpirationLast"} value={"Closing soon"}>Date of expiration (latest-earliest)</MenuItem>
+        // <MenuItem key={"ExpirationFirst"} value={"Closing last"}>Date of expiration (earliest-latest)</MenuItem>
+        // <MenuItem key={"Reserve price lowest"} value={"Reserve price lowest"}>Reserve price lowest</MenuItem>
+        // <MenuItem key={"Reserve price highest"} value={"Reserve price highest"}>Reserve price highest</MenuItem>
+
+        if (sort === null) {
+        } else {
+            switch (sort) {
+                case "Current bid (low-high)":
+                    results.sort(sortCurrentBidLowHigh)
+                    break
+                case "Current bid (high-low)":
+                    results.sort(sortCurrentBidHighLow)
+                    break
+                case "Alphabetical (A-Z)":
+                    results.sort(sortAlphabeticalAZ)
+                    break
+                case "Alphabetical (Z-A)":
+                    results.sort(sortAlphabeticalZA)
+                    break
+                case "ExpirationLast":
+                    break
+                case "ExpirationFirst":
+                    results.reverse()
+                    break
+                case "Reserve price lowest":
+                    results.sort(sortReserveLowest)
+                    break
+                case "Reserve price highest":
+                    results.sort(sortReserveHighest)
+                    break
+
+            }
+        }
+
+        setDisplayAuctionCount(auctionCount)
+        setDisplayAuctions(results)
+        setPageAuctions(results.slice(0,6))
 
     }
+
+    const onChangePage = (event: React.ChangeEvent<unknown>, page: number) => {
+        const start_index = (page - 1) * 6
+        const end_index = page * 6
+        setPageAuctions(displayAuctions.slice(start_index, end_index))
+    }
+
+    const [displayAuctionCount, setDisplayAuctionCount] = React.useState(auctionCount)
+
+    const [personName, setPersonName] = React.useState<string[]>([]);
+
+    const handleChangeMul = (event: SelectChangeEvent<typeof personName>) => {
+        const {
+            target: { value },
+        } = event;
+        setPersonName(
+            // On autofill we get a stringified value.
+            typeof value === 'string' ? value.split(',') : value,
+        );
+    };
+
 
     return (
         <ThemeProvider theme={theme}>
@@ -162,23 +345,36 @@ export default function Auctions() {
 
                         <Item sx={{ mt: 3 }}>
 
-                            <Box component="form" noValidate onChange={handleSubmit} >
+                            <Box component="form" noValidate onSubmit={handleSubmit} >
 
-                                <Typography variant={"h6"} sx={{mb: 1}}>Start your search...</Typography>
+                                <Grid container spacing={2} sx={{mb: 2}}>
+                                    <Grid item xs={12} sm={10}><Typography variant={"h6"} sx={{mb: 1}}>Start your search...</Typography></Grid>
+                                    <Grid item xs={12} sm={2}><Button
+                                        href={"/auctions/create"}
+                                        fullWidth
+                                        variant="outlined"
+                                    >
+                                        CREATE
+                                    </Button></Grid>
+
+                                </Grid>
+
+
+
+
 
                                 <TextField
                                     autoFocus
                                     name="query"
                                     margin="dense"
                                     id="query"
-                                    label="Try searching a user or a keyword"
+                                    label="Try searching a keyword"
                                     InputProps={{startAdornment: <InputAdornment position="start"><SearchIcon/></InputAdornment>,}}
                                     type="text"
                                     fullWidth
                                     variant="outlined" sx={{marginBottom: 2}}/>
 
                                 <Grid container spacing={2}>
-
                                     <Grid item xs={12} sm={4}>
 
 
@@ -190,17 +386,18 @@ export default function Auctions() {
                                                 name={"categories"}
                                                 label="Categories"
                                                 defaultValue={"All categories"}
-                                                onChange={handleChangeCategories}
                                             >
 
                                                 <MenuItem key={"All categories"} value={"All categories"}>All categories</MenuItem>
 
                                                 {categories.map(category =>
-                                                    <MenuItem key={(category.categoryId +1).toString()} value={(category.categoryId +1).toString()}>{category.name}</MenuItem>
+                                                    <MenuItem key={(category.categoryId).toString()} value={(category.categoryId).toString()}>{category.name}</MenuItem>
                                                 )}
 
                                             </Select>
                                         </FormControl>
+
+
 
                                     </Grid>
 
@@ -222,8 +419,8 @@ export default function Auctions() {
                                                 <MenuItem key={"Current bid (high-low)"} value={"Current bid (high-low)"}>Current bid (high-low)</MenuItem>
                                                 <MenuItem key={"Alphabetical (A-Z)"} value={"Alphabetical (A-Z)"}>Alphabetical (A-Z)</MenuItem>
                                                 <MenuItem key={"Alphabetical (Z-A)"} value={"Alphabetical (Z-A)"}>Alphabetical (Z-A)</MenuItem>
-                                                <MenuItem key={"Closing soon"} value={"Closing soon"}>Closing soon</MenuItem>
-                                                <MenuItem key={"Closing last"} value={"Closing last"}>Closing last</MenuItem>
+                                                <MenuItem key={"ExpirationLast"} value={"Closing soon"}>Date of expiration (latest-earliest)</MenuItem>
+                                                <MenuItem key={"ExpirationFirst"} value={"Closing last"}>Date of expiration (earliest-latest)</MenuItem>
                                                 <MenuItem key={"Reserve price lowest"} value={"Reserve price lowest"}>Reserve price lowest</MenuItem>
                                                 <MenuItem key={"Reserve price highest"} value={"Reserve price highest"}>Reserve price highest</MenuItem>
 
@@ -235,6 +432,7 @@ export default function Auctions() {
                                     <Grid item xs={12} sm={4}>
 
 
+
                                         <FormControl fullWidth>
                                             <InputLabel id="demo-simple-select-label">Status</InputLabel>
                                             <Select
@@ -242,7 +440,7 @@ export default function Auctions() {
                                                 id="status"
                                                 name="status"
                                                 label="Status"
-                                                defaultValue={"Open"}
+                                                defaultValue={"All listings"}
                                             >
 
                                                 <MenuItem key={"Open"} value={"Open"}>Open</MenuItem>
@@ -251,6 +449,15 @@ export default function Auctions() {
 
                                             </Select>
                                         </FormControl>
+
+                                        <Button
+                                            type="submit"
+                                            fullWidth
+                                            variant="contained"
+                                            sx={{ mt: 3, mb: 2 }}
+                                        >
+                                            Search
+                                        </Button>
 
                                     </Grid>
 
@@ -276,7 +483,7 @@ export default function Auctions() {
                     </Container>
                 </Box>
 
-                <Container sx={{ py: 8 }} >
+                <Container >
                     {/* End hero unit */}
 
                     <Stack
@@ -297,7 +504,8 @@ export default function Auctions() {
                         justifyContent="center"
                     >
                         <Box sx={{marginBottom: 5}}>
-                            <Pagination count={10} variant="outlined" color="primary" />
+                            <Pagination count={Math.ceil(displayAuctionCount/6)} variant="outlined" color="primary" onChange={onChangePage}/>
+
                         </Box>
                     </Stack>
 
@@ -305,7 +513,7 @@ export default function Auctions() {
 
 
                     <Grid container spacing={4}>
-                        {auctions.map((auction) => (
+                        {pageAuctions.map((auction) => (
                             <Grid item key={auction.auctionId} xs={5} sm={6} md={4}>
                                 <Card
                                     sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}
@@ -329,19 +537,20 @@ export default function Auctions() {
                                         <Typography gutterBottom variant="h6" component="h2">
                                             {auction.title}
                                         </Typography>
-                                        <Typography variant="caption">
+                                        <Typography variant="subtitle2">
                                             Listed by {auction.sellerFirstName} {auction.sellerLastName}
 
                                         </Typography>
 
-                                        <Typography variant="caption">
-                                            {auction.sellerFirstName}
+                                        <Typography variant="subtitle2">
+                                            Reserve: {auction.reserve} - Highest bid: ${auction.highestBid === null && "0"}{auction.highestBid != null && auction.highestBid}
+
                                         </Typography>
+
 
                                     </CardContent>
                                     <CardActions>
                                         <Button size="small" href={"/auctions/" + auction.auctionId}>View</Button>
-                                        <Button size="small">Bid</Button>
                                     </CardActions>
                                 </Card>
                             </Grid>

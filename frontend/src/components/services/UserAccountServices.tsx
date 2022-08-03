@@ -109,3 +109,15 @@ export const getUserAvatar = async (id: string) => {
     })
 }
 
+export const deleteUserAvatar = async (id: string) => {
+
+    const axiosConfig = {headers: {"X-Authorization": getCookie("userToken")}}
+
+    return await axios.delete('http://localhost:4941/api/v1/users/'+ getCookie("userId") + '/image', axiosConfig)
+        .then(response => {
+            return response
+        }, error => {
+            return error.response.statusText
+        })
+}
+

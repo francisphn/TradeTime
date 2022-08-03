@@ -1,6 +1,11 @@
-# Getting Started with Create React App
+# The Frontend
+This project was created with Create React App. It connects to Airtable using Airtable's API.
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+
+## Getting started
+Open `App.tsx` and paste your Firebase config (if you plan to use Firebase Hosting). Then it's ready for deployment.
+
+Enjoy!
 
 ## Available Scripts
 

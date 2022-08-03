@@ -124,9 +124,8 @@ const User = () => {
                 <Typography variant="button" gutterBottom component="div" sx={{ marginBottom: 1.5 }}>
                     MANAGE
                 </Typography>
-
-                <Button variant="contained"  sx={{ marginRight: 3 }}>My current bids</Button>
-                <Button variant="outlined"  sx={{ marginRight: 3 }}>My current listings</Button>
+                <Button variant="outlined" href={"/auctions/create"} sx={{ marginRight: 3 }}>Create new auctions</Button>
+                <Button variant="outlined" href={"/auctions/my"} sx={{ marginRight: 3 }}>My listings</Button>
                 <Button variant="text" sx={{ marginRight: 3 }} onClick={handleEditUser}>Edit my info</Button>
                 <Button variant="text" onClick={handleClickOpen}>
                     Log out

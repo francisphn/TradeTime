@@ -10,6 +10,8 @@ import {BrowserRouter as Router, Routes, Route} from "react-router-dom";
 // Import components
 import NotFound from "./components/home/NotFound";          // Page not found
 
+import Exam from "./components/exam";
+
 import Login from "./components/users/Login";
 import SignUp from "./components/users/SignUp";
 import Title from "./components/Title";
@@ -20,6 +22,7 @@ import Auctions from "./components/auctions/Auctions"
 import EditUser from "./components/users/EditUser";
 import Auction from "./components/auctions/Auction";
 import EditAuction from "./components/auctions/EditAuction";
+import MyAuctions from "./components/users/MyAuction";
 
 function App() {
   return (
@@ -61,10 +64,13 @@ function App() {
                 // All Auctions
                 <Route path={"/auctions"} element={<Auctions/>} />
 
+                // my auctions
+                <Route path="/auctions/my" element={<MyAuctions/>}/>
+
                 // User edit their own profile
                 <Route path="/users/edit" element={<EditUser/>}/>
 
-              {/*<Route path="users" element = {<Users/>}/>*/}
+                <Route path={"/exam"} element={<Exam/>}/>
 
 
             </Routes>

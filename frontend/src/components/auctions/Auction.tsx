@@ -18,13 +18,22 @@ import TableBody from "@mui/material/TableBody";
 import TableRow from "@mui/material/TableRow";
 import TableCell from "@mui/material/TableCell";
 import {deleteCookie, getCookie, isThereCookie} from "../services/CookiesService";
-import {fetchAuction, fetchAuctionHistory, userBidAuction} from "../services/AuctionServices";
+import {
+    fetchAllAuctions,
+    fetchAllCategories,
+    fetchAuction,
+    fetchAuctionHistory,
+    userBidAuction
+} from "../services/AuctionServices";
 import Grid from "@mui/material/Grid";
 import Container from "@mui/material/Container";
 import { styled } from '@mui/material/styles';
 import CardMedia from "@mui/material/CardMedia";
 import SendIcon from "@mui/icons-material/Send";
 import Link from "@mui/material/Link";
+import Card from "@mui/material/Card";
+import CardContent from "@mui/material/CardContent";
+import CardActions from "@mui/material/CardActions";
 
 function createData(
     amount: number,
@@ -60,6 +69,10 @@ const Auction = () => {
         }
     ])
 
+    const [categories, setCategories] = React.useState<Array<category>>([])
+
+    const [auctions, setAuctions] = React.useState<Array<auction>>([])
+
     const [errorFlag, setErrorFlag] = React.useState(false)
     const [errorMessage, setErrorMessage] = React.useState("")
     const [hasAuctionClosedFlag, setHasAuctionClosedFlag] = React.useState(false)
@@ -88,7 +101,10 @@ const Auction = () => {
 
     React.useEffect(() => {
 
+        const getCategoriesMe = getCategories().then(r => {
+            setCategories(r.data)
 
+        })
 
         handleLoadAuction().then((r) => {
             setAuction(r.data)
@@ -98,10 +114,20 @@ const Auction = () => {
             setBids(r.data)
 
         })
+
+        getAuctions().then(r => {
+            setAuctions(r.data.auctions)
+        })
+
     }, [open])
 
+    const getAuctions = async () => {
+        return await fetchAllAuctions();
+    }
 
-
+    const getCategories = async () => {
+        return await fetchAllCategories();
+    }
 
     const checkIfSeller = () => {
         if (getCookie("userId") === auction.sellerId.toString()) {
@@ -267,6 +293,18 @@ const Auction = () => {
         } else {
             return numBid.toString() + " bids"
         }
+    }
+
+    const relevantAuctions = () => {
+        let myAuctions: auction[] = [];
+        (auctions.map(auctional => {
+            if (auctional.sellerId === auction.sellerId) {
+                myAuctions.push(auctional)
+            } else if (auctional.categoryId === auction.categoryId) {
+                myAuctions.push(auctional)
+            }
+        }));
+        return myAuctions
     }
 
     return (
@@ -533,11 +571,6 @@ const Auction = () => {
                                 </Grid>
                             </Paper>
 
-                            <Typography variant="button" gutterBottom component="div"
-                                        sx={{marginTop: 5, marginBottom: 1.5}}>
-                                MANAGE
-                            </Typography>
-
 
 
 
@@ -556,6 +589,58 @@ const Auction = () => {
 
 
             }
+
+            <Typography variant="button" gutterBottom component="div" sx={{marginBottom: 1.5}}>
+                Relevant other auctions
+            </Typography>
+
+            <Grid container spacing={4} sx={{mb: 5}}>
+
+
+
+                {relevantAuctions().map((auction) => (
+                    <Grid item key={auction.auctionId} xs={5} sm={6} md={4}>
+                        <Card
+                            sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}
+                        >
+                            <CardMedia
+                                component="img"
+                                sx={{
+                                    // 16:9
+                                    width: 390,
+                                    height: 200
+                                }}
+                                image={"http://localhost:4941/api/v1/auctions/" + auction.auctionId + "/image"}
+                                alt="random"
+                            />
+                            <CardContent sx={{ flexGrow: 1 }}>
+
+                                <Typography gutterBottom variant="overline" component="h2">
+                                    {categories[auction.categoryId-1].name}
+                                </Typography>
+
+                                <Typography gutterBottom variant="h6" component="h2">
+                                    {auction.title}
+                                </Typography>
+                                <Typography variant="subtitle2">
+                                    Listed by {auction.sellerFirstName} {auction.sellerLastName}
+
+                                </Typography>
+
+                                <Typography variant="subtitle2">
+                                    Reserve: {auction.reserve} - Highest bid: ${auction.highestBid === null && "0"}{auction.highestBid != null && auction.highestBid}
+
+                                </Typography>
+
+
+                            </CardContent>
+                            <CardActions>
+                                <Button size="small" href={"/auctions/" + auction.auctionId}>View</Button>
+                            </CardActions>
+                        </Card>
+                    </Grid>
+                ))}
+            </Grid>
 
         </Container>
 
